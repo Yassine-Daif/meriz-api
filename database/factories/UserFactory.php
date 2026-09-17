@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +31,30 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => UserRole::Student,
+            'is_academic' => false,
         ];
+    }
+
+    /**
+     * Indicate that the user has an academic email address.
+     */
+    public function academic(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email' => fake()->unique()->userName().'@univ-lyon1.fr',
+            'is_academic' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a teacher.
+     */
+    public function teacher(): static
+    {
+        return $this->academic()->state(fn (array $attributes) => [
+            'role' => UserRole::Teacher,
+        ]);
     }
 
     /**

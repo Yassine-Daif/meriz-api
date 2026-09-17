@@ -35,7 +35,8 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Durée de vie d'un jeton, en minutes. 30 jours par défaut.
+    'expiration' => (int) env('SANCTUM_TOKEN_EXPIRATION', 60 * 24 * 30) ?: null,
 
     /*
     |--------------------------------------------------------------------------
@@ -50,7 +51,7 @@ return [
     |
     */
 
-    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
+    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', 'meriz_'),
 
     /*
     |--------------------------------------------------------------------------

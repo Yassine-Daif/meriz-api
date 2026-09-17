@@ -10,7 +10,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Pas de page de connexion : un invité reçoit un 401 JSON, jamais une redirection.
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API seule : toute erreur est rendue en JSON, jamais en page HTML.
