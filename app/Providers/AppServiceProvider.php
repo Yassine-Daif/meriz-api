@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Document;
 use App\Services\AcademicEmailChecker;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -31,6 +34,25 @@ class AppServiceProvider extends ServiceProvider
         Password::defaults(fn () => Password::min(8));
 
         $this->configureRateLimiting();
+        $this->configureRouteBindings();
+    }
+
+    /**
+     * {document} n'est cherché que parmi les documents de l'utilisateur
+     * connecté. Le document d'un autre lève la même exception qu'un
+     * document inexistant, donc le même 404.
+     */
+    private function configureRouteBindings(): void
+    {
+        Route::bind('document', function (string $value) {
+            $user = request()->user();
+
+            if (! $user || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(Document::class);
+            }
+
+            return $user->documents()->whereKey($value)->firstOrFail();
+        });
     }
 
     private function configureRateLimiting(): void

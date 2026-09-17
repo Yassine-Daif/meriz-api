@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\TeacherRoleController;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +14,13 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
-Route::middleware('auth:sanctum')->prefix('me')->group(function () {
-    Route::get('/', [MeController::class, 'show']);
-    Route::post('/teacher-role', [TeacherRoleController::class, 'store'])->middleware('throttle:6,1');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('me')->group(function () {
+        Route::get('/', [MeController::class, 'show']);
+        Route::post('/teacher-role', [TeacherRoleController::class, 'store'])->middleware('throttle:6,1');
+    });
+
+    Route::apiResource('documents', DocumentController::class)->only(['index', 'show']);
+    Route::apiResource('documents', DocumentController::class)->only(['store', 'update', 'destroy'])
+        ->middleware('throttle:60,1');
 });
