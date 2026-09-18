@@ -15,7 +15,8 @@ class RegisterTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return array_merge([
-            'name' => 'Alice Martin',
+            'name' => 'Martin',
+            'first_name' => 'Alice',
             'email' => 'alice@gmail.com',
             'password' => 'motdepasse-solide',
         ], $overrides);
@@ -82,7 +83,7 @@ class RegisterTest extends TestCase
     {
         $this->postJson('/api/auth/register', [])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['name', 'email', 'password']);
+            ->assertJsonValidationErrors(['name', 'first_name', 'email', 'password']);
 
         $this->postJson('/api/auth/register', $this->payload(['email' => 'pas-un-email']))
             ->assertUnprocessable()

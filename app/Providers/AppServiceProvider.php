@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Classroom;
 use App\Models\Document;
+use App\Models\User;
 use App\Services\AcademicEmailChecker;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -53,6 +56,29 @@ class AppServiceProvider extends ServiceProvider
 
             return $user->documents()->whereKey($value)->firstOrFail();
         });
+
+        // {classroom} n'est cherchée que parmi les classes que l'utilisateur
+        // enseigne ou dont il est membre. Sinon, même 404 qu'inexistante.
+        Route::bind('classroom', function (string $value) {
+            $user = request()->user();
+
+            if (! $user || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(Classroom::class);
+            }
+
+            return Classroom::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {member} n'est cherché que parmi les membres de la classe déjà résolue.
+        Route::bind('member', function (string $value, RoutingRoute $route) {
+            $classroom = $route->parameter('classroom');
+
+            if (! $classroom instanceof Classroom || ! ctype_digit($value)) {
+                throw (new ModelNotFoundException)->setModel(User::class);
+            }
+
+            return $classroom->members()->whereKey((int) $value)->firstOrFail();
+        });
     }
 
     private function configureRateLimiting(): void
@@ -65,6 +91,13 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(20)->by('login-ip:'.$request->ip()),
             ];
         });
+
+        // Contre la devinette de codes de classe.
+        RateLimiter::for('join-classroom', fn (Request $request) => [
+            Limit::perMinute(10)->by('join:'.$request->user()?->id),
+            Limit::perHour(50)->by('join-hour:'.$request->user()?->id),
+            Limit::perMinute(30)->by('join-ip:'.$request->ip()),
+        ]);
 
         RateLimiter::for('register', fn (Request $request) => [
             Limit::perMinute(5)->by('register:'.$request->ip()),

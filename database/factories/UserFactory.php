@@ -26,7 +26,8 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'name' => fake()->lastName(),
+            'first_name' => fake()->firstName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
@@ -44,6 +45,19 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email' => fake()->unique()->userName().'@univ-lyon1.fr',
             'is_academic' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the user fills and shares both profile fields.
+     */
+    public function withSharedProfile(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'bio' => fake()->sentence(),
+            'bio_shared' => true,
+            'contact' => 'discord: '.fake()->userName(),
+            'contact_shared' => true,
         ]);
     }
 

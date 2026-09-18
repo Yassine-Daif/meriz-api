@@ -8,16 +8,17 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * role et is_academic sont volontairement absents de Fillable :
- * ils ne s'écrivent que par forceFill, dans les actions dédiées.
+ * Fillable ne contient que les champs du profil. email, password, role et
+ * is_academic ne s'écrivent que par forceFill, dans les actions dédiées.
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'first_name', 'bio', 'bio_shared', 'contact', 'contact_shared'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -30,6 +31,8 @@ class User extends Authenticatable
     protected $attributes = [
         'role' => 'student',
         'is_academic' => false,
+        'bio_shared' => false,
+        'contact_shared' => false,
     ];
 
     /**
@@ -44,7 +47,43 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
             'is_academic' => 'boolean',
+            'bio_shared' => 'boolean',
+            'contact_shared' => 'boolean',
         ];
+    }
+
+    /**
+     * @return HasMany<Classroom, $this>
+     */
+    public function taughtClassrooms(): HasMany
+    {
+        return $this->hasMany(Classroom::class, 'teacher_id');
+    }
+
+    /**
+     * @return BelongsToMany<Classroom, $this>
+     */
+    public function classrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class)
+            ->as('membership')
+            ->withTimestamps();
+    }
+
+    /**
+     * Présentation visible par autrui : seulement si remplie et partagée.
+     */
+    public function sharedBio(): ?string
+    {
+        return $this->bio_shared && filled($this->bio) ? $this->bio : null;
+    }
+
+    /**
+     * Contact visible par autrui : seulement si rempli et partagé.
+     */
+    public function sharedContact(): ?string
+    {
+        return $this->contact_shared && filled($this->contact) ? $this->contact : null;
     }
 
     /**

@@ -19,7 +19,7 @@ class RegisterUser
     ) {}
 
     /**
-     * @param  array{name: string, email: string, password: string, device_name?: string|null}  $data
+     * @param  array{name: string, first_name: string, email: string, password: string, device_name?: string|null}  $data
      * @return array{user: User, token: string}
      */
     public function handle(array $data): array
@@ -29,6 +29,7 @@ class RegisterUser
         $user = new User;
         $user->forceFill([
             'name' => $data['name'],
+            'first_name' => $data['first_name'],
             'email' => $email,
             'password' => $data['password'],
             'role' => UserRole::Student,

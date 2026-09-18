@@ -26,7 +26,8 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:users,email'],
             // bcrypt ignore tout au-delà de 72 octets.
             'password' => ['required', 'string', Password::defaults(), 'max:72'],

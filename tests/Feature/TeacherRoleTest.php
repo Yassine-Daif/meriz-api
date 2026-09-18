@@ -64,7 +64,8 @@ class TeacherRoleTest extends TestCase
     public function test_full_flow_from_registration_to_teacher(): void
     {
         $token = $this->postJson('/api/auth/register', [
-            'name' => 'Claire Prof',
+            'name' => 'Prof',
+            'first_name' => 'Claire',
             'email' => 'claire@ac-lyon.fr',
             'password' => 'motdepasse-solide',
         ])->json('data.token');
