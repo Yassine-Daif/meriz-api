@@ -97,6 +97,51 @@ class ProfileTest extends TestCase
         $this->assertSame($user->id, $fresh->id);
     }
 
+    public function test_avatar_colors_default_when_not_chosen(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->getJson('/api/me')
+            ->assertJsonPath('data.avatar_bg', config('profile.avatar.default_background'))
+            ->assertJsonPath('data.avatar_fg', config('profile.avatar.default_text'));
+    }
+
+    public function test_user_chooses_avatar_colors(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $this->patchJson('/api/me', ['avatar_bg' => '#FEE2E2', 'avatar_fg' => '#7F1D1D'])
+            ->assertOk()
+            ->assertJsonPath('data.avatar_bg', '#fee2e2')
+            ->assertJsonPath('data.avatar_fg', '#7f1d1d');
+
+        // Forme courte développée, une seule écriture en base.
+        $this->patchJson('/api/me', ['avatar_bg' => '#ABC'])
+            ->assertOk()
+            ->assertJsonPath('data.avatar_bg', '#aabbcc');
+        $this->assertSame('#aabbcc', $user->fresh()->avatar_bg);
+
+        // Remise à zéro : on retrouve les valeurs par défaut.
+        $this->patchJson('/api/me', ['avatar_bg' => null, 'avatar_fg' => null])
+            ->assertOk()
+            ->assertJsonPath('data.avatar_bg', config('profile.avatar.default_background'));
+        $this->assertNull($user->fresh()->avatar_bg);
+    }
+
+    public function test_avatar_colors_must_be_hex(): void
+    {
+        Sanctum::actingAs($user = User::factory()->create(['avatar_bg' => '#123456']));
+
+        foreach (['rouge', '#12345', 'rgb(1,2,3)', 'aabbcc', '#gggggg', '#1234567', 123] as $invalid) {
+            $this->patchJson('/api/me', ['avatar_bg' => $invalid])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['avatar_bg']);
+        }
+
+        $this->assertSame('#123456', $user->fresh()->avatar_bg);
+    }
+
     public function test_profile_input_is_validated(): void
     {
         Sanctum::actingAs(User::factory()->create());

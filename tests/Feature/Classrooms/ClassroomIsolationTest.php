@@ -235,6 +235,10 @@ class ClassroomIsolationTest extends TestCase
         $this->assertSame($this->alice->contact, $aliceEntry['contact']);
         $response->assertJsonPath('data.teacher.bio', $this->teacher->bio);
 
+        // Les couleurs d'avatar sont visibles : elles sont faites pour ça.
+        $this->assertSame($this->alice->avatarBackground(), $aliceEntry['avatar_bg']);
+        $this->assertSame($this->alice->avatarText(), $aliceEntry['avatar_fg']);
+
         // Aucun réglage de partage ni rôle d'autrui n'est exposé.
         $this->assertArrayNotHasKey('bio_shared', $aliceEntry);
         $this->assertArrayNotHasKey('role', $aliceEntry);

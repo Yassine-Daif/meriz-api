@@ -26,6 +26,10 @@ class PublicProfileResource extends JsonResource
             'first_name' => $this->first_name,
             'bio' => $this->sharedBio(),
             'contact' => $this->sharedContact(),
+            // Couleurs de la pastille : choisies pour être vues, donc pas
+            // d'interrupteur de partage.
+            'avatar_bg' => $this->avatarBackground(),
+            'avatar_fg' => $this->avatarText(),
         ];
     }
 }

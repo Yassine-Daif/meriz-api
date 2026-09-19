@@ -31,6 +31,8 @@ class UserResource extends JsonResource
             'bio_shared' => $this->bio_shared,
             'contact' => $this->contact,
             'contact_shared' => $this->contact_shared,
+            'avatar_bg' => $this->avatarBackground(),
+            'avatar_fg' => $this->avatarText(),
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
