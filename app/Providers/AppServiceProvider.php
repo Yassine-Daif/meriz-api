@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Assignment;
 use App\Models\Classroom;
 use App\Models\Document;
 use App\Models\User;
@@ -67,6 +68,19 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return Classroom::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {assignment} n'est cherché que parmi les devoirs visibles : tous ceux
+        // des classes que l'utilisateur enseigne, les publiés de ses classes.
+        // Un brouillon, pour un élève, donne le même 404 qu'un devoir inexistant.
+        Route::bind('assignment', function (string $value) {
+            $user = request()->user();
+
+            if (! $user || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(Assignment::class);
+            }
+
+            return Assignment::visibleTo($user)->whereKey($value)->firstOrFail();
         });
 
         // {member} n'est cherché que parmi les membres de la classe déjà résolue.

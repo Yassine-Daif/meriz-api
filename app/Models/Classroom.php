@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Classe d'un prof.
@@ -24,6 +26,23 @@ class Classroom extends Model
 {
     /** @use HasFactory<ClassroomFactory> */
     use HasFactory, HasUlids;
+
+    protected static function booted(): void
+    {
+        // Les devoirs partent en cascade dans la base, sans événement :
+        // on efface ici le dossier de leurs images.
+        static::deleting(function (Classroom $classroom) {
+            Storage::disk(config('assignments.image_disk'))->deleteDirectory('assignments/'.$classroom->id);
+        });
+    }
+
+    /**
+     * @return HasMany<Assignment, $this>
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class);
+    }
 
     /**
      * @return BelongsTo<User, $this>

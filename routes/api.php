@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AssignmentCopyController;
+use App\Http\Controllers\AssignmentImageController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
@@ -37,6 +40,28 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/classrooms/{classroom}/code', [ClassroomController::class, 'regenerateCode']);
         Route::delete('/classrooms/{classroom}/members/{member}', [ClassroomMembershipController::class, 'remove']);
         Route::delete('/classrooms/{classroom}/membership', [ClassroomMembershipController::class, 'leave']);
+    });
+
+    // Devoirs
+    Route::get('/classrooms/{classroom}/assignments', [AssignmentController::class, 'indexForClassroom']);
+    Route::get('/assignments', [AssignmentController::class, 'index']);
+    Route::get('/assignments/{assignment}', [AssignmentController::class, 'show']);
+    Route::get('/assignments/{assignment}/image', [AssignmentImageController::class, 'show']);
+
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::post('/classrooms/{classroom}/assignments', [AssignmentController::class, 'store']);
+        Route::patch('/assignments/{assignment}', [AssignmentController::class, 'update']);
+        Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy']);
+        Route::post('/assignments/{assignment}/publication', [AssignmentController::class, 'publish']);
+        Route::delete('/assignments/{assignment}/publication', [AssignmentController::class, 'unpublish']);
+        Route::post('/assignments/{assignment}/solution-release', [AssignmentController::class, 'releaseSolution']);
+        Route::delete('/assignments/{assignment}/solution-release', [AssignmentController::class, 'withholdSolution']);
+        Route::delete('/assignments/{assignment}/image', [AssignmentImageController::class, 'destroy']);
+    });
+
+    Route::middleware('throttle:20,1')->group(function () {
+        Route::post('/assignments/{assignment}/image', [AssignmentImageController::class, 'store']);
+        Route::post('/assignments/{assignment}/copy', [AssignmentCopyController::class, 'store']);
     });
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'show']);
