@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Assignment;
 use App\Models\Classroom;
 use App\Models\Document;
+use App\Models\Submission;
 use App\Models\User;
 use App\Services\AcademicEmailChecker;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -81,6 +82,19 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return Assignment::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {submission} n'est cherché que parmi les rendus visibles : les siens,
+        // et ceux des devoirs des classes que l'utilisateur enseigne. Le rendu
+        // d'un autre élève donne le même 404 qu'un rendu inexistant.
+        Route::bind('submission', function (string $value) {
+            $user = request()->user();
+
+            if (! $user || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(Submission::class);
+            }
+
+            return Submission::visibleTo($user)->whereKey($value)->firstOrFail();
         });
 
         // {member} n'est cherché que parmi les membres de la classe déjà résolue.

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -58,6 +59,14 @@ class Assignment extends Model
             'solution_released_at' => 'datetime',
             'image_size' => 'integer',
         ];
+    }
+
+    /**
+     * @return HasMany<Submission, $this>
+     */
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(Submission::class);
     }
 
     /**

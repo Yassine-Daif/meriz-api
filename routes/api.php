@@ -8,6 +8,8 @@ use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\MeController;
+use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\SubmissionGradeController;
 use App\Http\Controllers\TeacherRoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +59,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/assignments/{assignment}/solution-release', [AssignmentController::class, 'releaseSolution']);
         Route::delete('/assignments/{assignment}/solution-release', [AssignmentController::class, 'withholdSolution']);
         Route::delete('/assignments/{assignment}/image', [AssignmentImageController::class, 'destroy']);
+    });
+
+    // Rendus
+    Route::get('/assignments/{assignment}/submission', [SubmissionController::class, 'mine']);
+    Route::get('/assignments/{assignment}/submissions', [SubmissionController::class, 'index']);
+    Route::get('/submissions/{submission}', [SubmissionController::class, 'show']);
+
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::put('/assignments/{assignment}/submission', [SubmissionController::class, 'store']);
+        Route::post('/submissions/{submission}/grade', [SubmissionGradeController::class, 'store']);
+        Route::delete('/submissions/{submission}/grade', [SubmissionGradeController::class, 'destroy']);
     });
 
     Route::middleware('throttle:20,1')->group(function () {

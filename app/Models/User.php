@@ -53,6 +53,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<Submission, $this>
+     */
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(Submission::class);
+    }
+
+    /**
      * @return HasMany<Classroom, $this>
      */
     public function taughtClassrooms(): HasMany
