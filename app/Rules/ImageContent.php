@@ -4,13 +4,10 @@ namespace App\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Http\UploadedFile;
 
 /**
- * Vérifie qu'un fichier est réellement une image d'un type autorisé, en
- * lisant ses octets : ni son nom, ni l'en-tête envoyé par le client ne
- * comptent. Le type détecté par finfo doit être autorisé, et getimagesize
- * doit reconnaître une image de ce même type.
+ * Image seulement : cas particulier de UploadedMedia, gardé pour les images
+ * de devoirs.
  */
 class ImageContent implements ValidationRule
 {
@@ -23,25 +20,12 @@ class ImageContent implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! $value instanceof UploadedFile || ! $value->isValid()) {
-            $fail(self::MESSAGE);
-
-            return;
-        }
-
-        $mime = self::detectMime($value->getRealPath());
-        $info = @getimagesize($value->getRealPath());
-
-        if (! in_array($mime, $this->allowedMimes, true) || $info === false || $info['mime'] !== $mime) {
-            $fail(self::MESSAGE);
-        }
+        (new UploadedMedia($this->allowedMimes, self::MESSAGE, mustBeImage: true))
+            ->validate($attribute, $value, $fail);
     }
 
     public static function detectMime(string $path): ?string
     {
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($path);
-
-        return $mime === false ? null : $mime;
+        return UploadedMedia::detectMime($path);
     }
 }

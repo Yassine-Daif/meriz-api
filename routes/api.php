@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\LessonController;
+use App\Http\Controllers\LessonMediumController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\SubmissionGradeController;
@@ -60,6 +62,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/assignments/{assignment}/solution-release', [AssignmentController::class, 'withholdSolution']);
         Route::delete('/assignments/{assignment}/image', [AssignmentImageController::class, 'destroy']);
     });
+
+    // Cours
+    Route::get('/classrooms/{classroom}/lessons', [LessonController::class, 'indexForClassroom']);
+    Route::get('/lessons', [LessonController::class, 'index']);
+    Route::get('/lessons/{lesson}', [LessonController::class, 'show']);
+    Route::get('/lessons/{lesson}/media/{medium}', [LessonMediumController::class, 'show']);
+
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::post('/classrooms/{classroom}/lessons', [LessonController::class, 'store']);
+        Route::patch('/lessons/{lesson}', [LessonController::class, 'update']);
+        Route::delete('/lessons/{lesson}', [LessonController::class, 'destroy']);
+        Route::post('/lessons/{lesson}/publication', [LessonController::class, 'publish']);
+        Route::delete('/lessons/{lesson}/publication', [LessonController::class, 'unpublish']);
+        Route::delete('/lessons/{lesson}/media/{medium}', [LessonMediumController::class, 'destroy']);
+    });
+
+    Route::post('/lessons/{lesson}/media', [LessonMediumController::class, 'store'])
+        ->middleware('throttle:20,1');
 
     // Rendus
     Route::get('/assignments/{assignment}/submission', [SubmissionController::class, 'mine']);

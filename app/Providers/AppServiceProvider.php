@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Models\Assignment;
 use App\Models\Classroom;
 use App\Models\Document;
+use App\Models\Lesson;
+use App\Models\LessonMedium;
 use App\Models\Submission;
 use App\Models\User;
 use App\Services\AcademicEmailChecker;
@@ -82,6 +84,29 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return Assignment::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {lesson} n'est cherché que parmi les cours visibles : tous ceux des
+        // classes enseignées, les publiés des classes dont on est membre.
+        Route::bind('lesson', function (string $value) {
+            $user = request()->user();
+
+            if (! $user || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(Lesson::class);
+            }
+
+            return Lesson::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {medium} n'est cherché que parmi les médias du cours déjà résolu.
+        Route::bind('medium', function (string $value, RoutingRoute $route) {
+            $lesson = $route->parameter('lesson');
+
+            if (! $lesson instanceof Lesson || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(LessonMedium::class);
+            }
+
+            return $lesson->media()->whereKey($value)->firstOrFail();
         });
 
         // {submission} n'est cherché que parmi les rendus visibles : les siens,

@@ -33,7 +33,16 @@ class Classroom extends Model
         // on efface ici le dossier de leurs images.
         static::deleting(function (Classroom $classroom) {
             Storage::disk(config('assignments.image_disk'))->deleteDirectory('assignments/'.$classroom->id);
+            Storage::disk(config('lessons.disk'))->deleteDirectory('lessons/'.$classroom->id);
         });
+    }
+
+    /**
+     * @return HasMany<Lesson, $this>
+     */
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class);
     }
 
     /**
