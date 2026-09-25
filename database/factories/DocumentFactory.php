@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Assignment;
 use App\Models\Document;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,5 +26,13 @@ class DocumentFactory extends Factory
                 'settings' => ['zoom' => 1],
             ]),
         ];
+    }
+
+    /**
+     * Document issu de la base d'un devoir.
+     */
+    public function forAssignment(Assignment $assignment): static
+    {
+        return $this->state(fn (array $attributes) => ['assignment_id' => $assignment->id]);
     }
 }

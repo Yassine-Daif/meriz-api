@@ -62,6 +62,16 @@ class Assignment extends Model
     }
 
     /**
+     * Documents copiés depuis la base de ce devoir.
+     *
+     * @return HasMany<Document, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    /**
      * @return HasMany<Submission, $this>
      */
     public function submissions(): HasMany

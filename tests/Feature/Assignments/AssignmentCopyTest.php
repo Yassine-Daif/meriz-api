@@ -51,6 +51,31 @@ class AssignmentCopyTest extends TestCase
         $this->assertSame($base, $assignment->fresh()->base_content);
     }
 
+    public function test_copy_records_the_link_to_the_assignment(): void
+    {
+        $assignment = Assignment::factory()->for($this->classroom)->published()->withBase()->create();
+
+        $id = $this->postJson("/api/assignments/{$assignment->id}/copy")
+            ->assertCreated()
+            ->assertJsonPath('data.assignment_id', $assignment->id)
+            ->json('data.id');
+
+        $document = Document::findOrFail($id);
+        $this->assertTrue($document->assignment->is($assignment));
+
+        // Supprimer le devoir garde le travail de l'élève, sans rattachement.
+        $assignment->delete();
+        $this->assertModelExists($document);
+        $this->assertNull($document->fresh()->assignment_id);
+    }
+
+    public function test_a_plain_document_has_no_assignment(): void
+    {
+        $this->postJson('/api/documents', ['name' => 'Perso', 'content' => '{}'])
+            ->assertCreated()
+            ->assertJsonPath('data.assignment_id', null);
+    }
+
     public function test_copy_without_base_is_refused(): void
     {
         $assignment = Assignment::factory()->for($this->classroom)->published()->create();

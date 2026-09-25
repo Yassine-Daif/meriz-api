@@ -10,6 +10,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonMediumController;
 use App\Http\Controllers\MeController;
+use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\SubmissionGradeController;
 use App\Http\Controllers\TeacherRoleController;
@@ -62,6 +63,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/assignments/{assignment}/solution-release', [AssignmentController::class, 'withholdSolution']);
         Route::delete('/assignments/{assignment}/image', [AssignmentImageController::class, 'destroy']);
     });
+
+    // Vues d'ensemble, lecture seule
+    Route::get('/overview/to-grade', [OverviewController::class, 'toGrade']);
+    Route::get('/overview/my-assignments', [OverviewController::class, 'myAssignments']);
 
     // Cours
     Route::get('/classrooms/{classroom}/lessons', [LessonController::class, 'indexForClassroom']);

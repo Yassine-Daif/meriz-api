@@ -19,9 +19,9 @@ class CreateDocument
      *
      * @throws ValidationException
      */
-    public function handle(User $owner, array $data): Document
+    public function handle(User $owner, array $data, ?string $assignmentId = null): Document
     {
-        return DB::transaction(function () use ($owner, $data) {
+        return DB::transaction(function () use ($owner, $data, $assignmentId) {
             // Verrou sur le compte : deux créations simultanées ne dépassent pas le quota.
             User::whereKey($owner->id)->lockForUpdate()->first();
 
@@ -30,10 +30,15 @@ class CreateDocument
             }
 
             // Le propriétaire vient de la relation, jamais des données du client.
-            return $owner->documents()->create([
+            $document = $owner->documents()->make([
                 'name' => $data['name'],
                 'content' => $data['content'],
             ]);
+
+            // Le rattachement à un devoir vient de l'action de copie.
+            $document->forceFill(['assignment_id' => $assignmentId])->save();
+
+            return $document;
         });
     }
 }

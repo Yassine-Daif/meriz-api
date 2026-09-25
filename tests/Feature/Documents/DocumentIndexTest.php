@@ -54,7 +54,10 @@ class DocumentIndexTest extends TestCase
 
         $response = $this->getJson('/api/documents')->assertOk();
 
-        $this->assertSame(['id', 'name', 'created_at', 'updated_at'], array_keys($response->json('data.0')));
+        $this->assertSame(
+            ['id', 'name', 'assignment_id', 'created_at', 'updated_at'],
+            array_keys($response->json('data.0')),
+        );
         $response->assertDontSee('lourd');
     }
 

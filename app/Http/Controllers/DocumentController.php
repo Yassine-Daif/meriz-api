@@ -24,7 +24,7 @@ class DocumentController extends Controller
         Gate::authorize('viewAny', Document::class);
 
         $documents = $request->user()->documents()
-            ->select(['id', 'name', 'created_at', 'updated_at'])
+            ->select(['id', 'name', 'assignment_id', 'created_at', 'updated_at'])
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
             ->paginate($request->perPage())

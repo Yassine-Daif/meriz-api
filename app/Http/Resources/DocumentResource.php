@@ -22,6 +22,8 @@ class DocumentResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            // Rempli quand le document vient de la base d'un devoir.
+            'assignment_id' => $this->assignment_id,
             'content' => $this->whenHas('content'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

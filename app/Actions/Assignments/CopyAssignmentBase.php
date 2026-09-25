@@ -32,6 +32,6 @@ class CopyAssignmentBase
         return $this->createDocument->handle($user, [
             'name' => Str::limit($assignment->title, 255, ''),
             'content' => $assignment->base_content,
-        ]);
+        ], $assignment->id);
     }
 }
