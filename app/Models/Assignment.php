@@ -35,6 +35,7 @@ class Assignment extends Model
      */
     protected $attributes = [
         'status' => 'draft',
+        'live_tracking' => false,
     ];
 
     protected static function booted(): void
@@ -57,6 +58,8 @@ class Assignment extends Model
             'due_at' => 'datetime',
             'published_at' => 'datetime',
             'solution_released_at' => 'datetime',
+            'live_tracking' => 'boolean',
+            'live_tracking_enabled_at' => 'datetime',
             'image_size' => 'integer',
         ];
     }
@@ -109,6 +112,14 @@ class Assignment extends Model
         return $this->status === AssignmentStatus::Published;
     }
 
+    /**
+     * Le prof a-t-il ouvert le suivi en direct sur ce devoir ?
+     */
+    public function liveTrackingEnabled(): bool
+    {
+        return (bool) $this->live_tracking;
+    }
+
     public function solutionReleased(): bool
     {
         return $this->solution_released_at !== null;
@@ -149,6 +160,7 @@ class Assignment extends Model
             'assignments.id', 'assignments.classroom_id', 'assignments.title', 'assignments.type',
             'assignments.due_at', 'assignments.status', 'assignments.published_at',
             'assignments.solution_released_at', 'assignments.image_path',
+            'assignments.live_tracking', 'assignments.live_tracking_enabled_at',
             'assignments.created_at', 'assignments.updated_at',
         ])->selectRaw('assignments.base_content IS NOT NULL AS has_base_flag')
             ->selectRaw('assignments.solution_content IS NOT NULL AS has_solution_flag');

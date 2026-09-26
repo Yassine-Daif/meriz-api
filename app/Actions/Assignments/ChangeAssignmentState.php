@@ -51,6 +51,31 @@ class ChangeAssignmentState
         return $assignment;
     }
 
+    /**
+     * Ouvre le suivi en direct. L'élève le voit aussitôt dans le devoir.
+     */
+    public function enableLiveTracking(Assignment $assignment): Assignment
+    {
+        if (! $assignment->liveTrackingEnabled()) {
+            $assignment->forceFill([
+                'live_tracking' => true,
+                'live_tracking_enabled_at' => now(),
+            ])->save();
+        }
+
+        return $assignment;
+    }
+
+    public function disableLiveTracking(Assignment $assignment): Assignment
+    {
+        $assignment->forceFill([
+            'live_tracking' => false,
+            'live_tracking_enabled_at' => null,
+        ])->save();
+
+        return $assignment;
+    }
+
     public function withholdSolution(Assignment $assignment): Assignment
     {
         $assignment->forceFill(['solution_released_at' => null])->save();

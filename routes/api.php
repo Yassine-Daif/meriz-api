@@ -9,6 +9,7 @@ use App\Http\Controllers\ClassroomMembershipController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonMediumController;
+use App\Http\Controllers\LiveTrackingController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\SubmissionController;
@@ -95,6 +96,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/assignments/{assignment}/submission', [SubmissionController::class, 'store']);
         Route::post('/submissions/{submission}/grade', [SubmissionGradeController::class, 'store']);
         Route::delete('/submissions/{submission}/grade', [SubmissionGradeController::class, 'destroy']);
+    });
+
+    // Suivi en direct : lecture seule, hormis le drapeau.
+    Route::middleware('throttle:120,1')->group(function () {
+        Route::get('/assignments/{assignment}/live', [LiveTrackingController::class, 'index']);
+        Route::get('/assignments/{assignment}/live/{student}', [LiveTrackingController::class, 'show']);
+    });
+
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::post('/assignments/{assignment}/live-tracking', [LiveTrackingController::class, 'enable']);
+        Route::delete('/assignments/{assignment}/live-tracking', [LiveTrackingController::class, 'disable']);
     });
 
     Route::middleware('throttle:20,1')->group(function () {

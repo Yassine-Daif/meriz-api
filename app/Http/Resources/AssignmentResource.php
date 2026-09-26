@@ -47,6 +47,10 @@ class AssignmentResource extends JsonResource
             'has_base' => $this->hasBase(),
             'has_solution' => $this->when($isOwner, fn () => $this->hasSolution()),
             'solution_released' => $this->solutionReleased(),
+            // Visible de tous ceux qui voient le devoir : c'est ainsi que
+            // l'élève sait que le prof peut suivre son travail.
+            'live_tracking' => $this->liveTrackingEnabled(),
+            'live_tracking_enabled_at' => $this->live_tracking_enabled_at?->toIso8601String(),
             'instructions' => $this->when($this->detailed, fn () => $this->instructions),
             'base_content' => $this->when($this->detailed, fn () => $this->base_content),
             'solution_content' => $this->when(

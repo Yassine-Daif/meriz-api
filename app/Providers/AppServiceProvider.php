@@ -122,6 +122,18 @@ class AppServiceProvider extends ServiceProvider
             return Submission::visibleTo($user)->whereKey($value)->firstOrFail();
         });
 
+        // {student} n'est cherché que parmi les membres de la classe du devoir
+        // déjà résolu : on n'observe que ses propres élèves.
+        Route::bind('student', function (string $value, RoutingRoute $route) {
+            $assignment = $route->parameter('assignment');
+
+            if (! $assignment instanceof Assignment || ! ctype_digit($value)) {
+                throw (new ModelNotFoundException)->setModel(User::class);
+            }
+
+            return $assignment->classroom->members()->whereKey((int) $value)->firstOrFail();
+        });
+
         // {member} n'est cherché que parmi les membres de la classe déjà résolue.
         Route::bind('member', function (string $value, RoutingRoute $route) {
             $classroom = $route->parameter('classroom');

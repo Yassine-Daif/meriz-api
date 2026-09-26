@@ -18,6 +18,8 @@ class AssignmentPolicy
 {
     public const OWNER_ONLY_MESSAGE = 'Réservé au prof de la classe.';
 
+    public const TRACKING_OFF_MESSAGE = 'Le suivi en direct n\'est pas activé pour ce devoir.';
+
     public function create(User $user, Classroom $classroom): Response
     {
         if ($classroom->isTaughtBy($user)) {
@@ -64,6 +66,23 @@ class AssignmentPolicy
         return $assignment->isPublished()
             && $assignment->solutionReleased()
             && $assignment->classroom->hasMember($user);
+    }
+
+    /**
+     * Observer le travail en cours : le prof du devoir, et seulement si le
+     * suivi est activé. Un élève n'observe jamais personne.
+     */
+    public function observeLive(User $user, Assignment $assignment): Response
+    {
+        if ($assignment->classroom->isTaughtBy($user)) {
+            return $assignment->liveTrackingEnabled()
+                ? Response::allow()
+                : Response::deny(self::TRACKING_OFF_MESSAGE);
+        }
+
+        return $this->canView($user, $assignment)
+            ? Response::deny(self::OWNER_ONLY_MESSAGE)
+            : Response::denyAsNotFound();
     }
 
     public function copyBase(User $user, Assignment $assignment): Response

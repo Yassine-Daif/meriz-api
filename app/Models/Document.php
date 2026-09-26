@@ -24,6 +24,16 @@ class Document extends Model
     use HasFactory, HasUlids;
 
     /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'last_observed_at' => 'datetime',
+        ];
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo

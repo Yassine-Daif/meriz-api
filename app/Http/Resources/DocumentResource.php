@@ -24,6 +24,8 @@ class DocumentResource extends JsonResource
             'name' => $this->name,
             // Rempli quand le document vient de la base d'un devoir.
             'assignment_id' => $this->assignment_id,
+            // Transparence : quand ce travail a été consulté par le prof.
+            'last_observed_at' => $this->last_observed_at?->toIso8601String(),
             'content' => $this->whenHas('content'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
