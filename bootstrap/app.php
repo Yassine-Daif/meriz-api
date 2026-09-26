@@ -10,6 +10,12 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
     )
+    // L'API est par jeton : la route d'autorisation des canaux s'authentifie
+    // avec le Bearer token, jamais par cookie de session.
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        ['middleware' => ['auth:sanctum']],
+    )
     ->withMiddleware(function (Middleware $middleware): void {
         // Pas de page de connexion : un invité reçoit un 401 JSON, jamais une redirection.
         $middleware->redirectGuestsTo(fn () => null);

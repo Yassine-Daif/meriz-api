@@ -11,6 +11,7 @@ use App\Models\Assignment;
 use App\Models\Document;
 use App\Models\Submission;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 
@@ -81,6 +82,22 @@ class LiveTrackingController extends Controller
         $document->setRelation('user', $student);
 
         return new LiveSnapshotResource($document);
+    }
+
+    /**
+     * Ping « j'observe toujours », envoyé pendant qu'une fenêtre de suivi est
+     * ouverte. Il n'écrit que la trace de lecture, jamais le travail, pour que
+     * l'élève voie une heure juste même sous websocket.
+     */
+    public function seen(Assignment $assignment, User $student, ObserveWork $observe): JsonResponse
+    {
+        Gate::authorize('observeLive', $assignment);
+
+        $observedAt = $observe->markObserved($assignment, $student);
+
+        abort_if($observedAt === null, 404);
+
+        return response()->json(['data' => ['observed_at' => $observedAt->toIso8601String()]]);
     }
 
     private function assignment(Assignment $assignment): AssignmentResource

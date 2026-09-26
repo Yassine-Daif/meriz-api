@@ -14,7 +14,9 @@ return [
     |
     */
 
-    'paths' => ['api/*'],
+    // broadcasting/auth : le front y autorise ses canaux websocket, avec son
+    // Bearer token, donc il lui faut aussi le feu vert CORS.
+    'paths' => ['api/*', 'broadcasting/auth'],
 
     'allowed_methods' => ['*'],
 

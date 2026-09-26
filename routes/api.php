@@ -102,6 +102,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('throttle:120,1')->group(function () {
         Route::get('/assignments/{assignment}/live', [LiveTrackingController::class, 'index']);
         Route::get('/assignments/{assignment}/live/{student}', [LiveTrackingController::class, 'show']);
+        // Ping d'observation : n'écrit que la trace de lecture.
+        Route::post('/assignments/{assignment}/live/{student}/seen', [LiveTrackingController::class, 'seen']);
     });
 
     Route::middleware('throttle:60,1')->group(function () {

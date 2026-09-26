@@ -5,6 +5,7 @@ namespace App\Actions\Assignments;
 use App\Models\Assignment;
 use App\Models\Document;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -27,12 +28,39 @@ class ObserveWork
             ->orderByDesc('updated_at')
             ->firstOrFail();
 
-        // Transparence : on note la consultation. Un update direct, pour ne
-        // toucher ni le contenu ni updated_at, qui sert de date d'activité.
-        $observedAt = now();
-        Document::whereKey($document->id)->toBase()->update(['last_observed_at' => $observedAt]);
+        $observedAt = $this->stamp($document);
         $document->setAttribute('last_observed_at', $observedAt);
 
         return $document;
+    }
+
+    /**
+     * Note une consultation sans lire le contenu : utilisé quand le prof
+     * s'abonne au canal, et à chaque ping « j'observe toujours ».
+     *
+     * Renvoie null si l'élève n'a pas commencé.
+     */
+    public function markObserved(Assignment $assignment, User $student): ?CarbonInterface
+    {
+        $document = Document::query()
+            ->select(['id'])
+            ->where('assignment_id', $assignment->id)
+            ->where('user_id', $student->id)
+            ->orderByDesc('updated_at')
+            ->first();
+
+        return $document === null ? null : $this->stamp($document);
+    }
+
+    /**
+     * Transparence : on note la consultation. Un update direct, pour ne
+     * toucher ni le contenu ni updated_at, qui sert de date d'activité.
+     */
+    private function stamp(Document $document): CarbonInterface
+    {
+        $observedAt = now();
+        Document::whereKey($document->id)->toBase()->update(['last_observed_at' => $observedAt]);
+
+        return $observedAt;
     }
 }
