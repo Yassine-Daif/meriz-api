@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AssignmentController;
-use App\Http\Controllers\AssignmentCopyController;
 use App\Http\Controllers\AssignmentImageController;
+use App\Http\Controllers\AssignmentWorkController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
@@ -113,7 +113,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('throttle:20,1')->group(function () {
         Route::post('/assignments/{assignment}/image', [AssignmentImageController::class, 'store']);
-        Route::post('/assignments/{assignment}/copy', [AssignmentCopyController::class, 'store']);
+        // Commencer un devoir : crée le travail rattaché, avec base ou non.
+        Route::post('/assignments/{assignment}/start', [AssignmentWorkController::class, 'start']);
+        // Ancien nom, conservé le temps que l'application passe à /start.
+        Route::post('/assignments/{assignment}/copy', [AssignmentWorkController::class, 'start']);
     });
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'show']);

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Assignments;
 
-use App\Actions\Assignments\CopyAssignmentBase;
+use App\Actions\Assignments\StartAssignmentWork;
 use App\Actions\Documents\CreateDocument;
 use App\Models\Assignment;
 use App\Models\Classroom;
@@ -76,15 +76,16 @@ class AssignmentCopyTest extends TestCase
             ->assertJsonPath('data.assignment_id', null);
     }
 
-    public function test_copy_without_base_is_refused(): void
+    public function test_without_base_an_empty_but_attached_work_is_created(): void
     {
         $assignment = Assignment::factory()->for($this->classroom)->published()->create();
 
         $this->postJson("/api/assignments/{$assignment->id}/copy")
-            ->assertUnprocessable()
-            ->assertJsonPath('errors.base_content.0', CopyAssignmentBase::NO_BASE_MESSAGE);
+            ->assertCreated()
+            ->assertJsonPath('data.assignment_id', $assignment->id)
+            ->assertJsonPath('data.content', StartAssignmentWork::EMPTY_CONTENT);
 
-        $this->assertDatabaseCount('documents', 0);
+        $this->assertDatabaseCount('documents', 1);
     }
 
     public function test_copy_respects_the_document_quota(): void
