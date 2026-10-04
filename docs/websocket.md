@@ -6,6 +6,10 @@ développement, puis comment le déployer sur le VPS.
 
 ## Ce qui circule
 
+Deux usages distincts.
+
+### 1. Observation simple, par le serveur
+
 - Un seul type d'évènement, `work.updated`, sur un canal privé par couple
   devoir et élève : `private-assignments.{devoir}.work.{eleve}`.
 - L'évènement ne part que si le prof a activé le suivi sur ce devoir.
@@ -14,6 +18,43 @@ développement, puis comment le déployer sur le VPS.
   non-membre ne peut jamais s'abonner.
 - Chaque abonnement, et chaque ping `POST /api/assignments/{devoir}/live/{eleve}/seen`,
   met à jour l'heure de dernière lecture que l'élève voit sur son document.
+
+### 2. Co-édition, de pair à pair
+
+- **Canal de présence par document** : `presence-documents.{document}`.
+- **Qui peut rejoindre**, et personne d'autre :
+  - l'élève propriétaire du travail ;
+  - le prof du devoir lié, **seulement si le suivi est activé**.
+  La décision est prise par `DocumentPolicy::collaborate`, qui compose
+  `AssignmentPolicy::observeLive`. Un document personnel n'a pas de devoir,
+  donc aucun prof n'y entre. Le travail de groupe s'ajoutera dans cette
+  seule méthode.
+- **La présence porte l'identité d'affichage** : `id`, `name`, `first_name`,
+  `role`, `avatar_bg`, `avatar_fg`. Rien d'autre : ni email, ni présentation,
+  ni contact, ni note, ni corrigé.
+- **Les mises à jour circulent en évènements de client**, sans aucun appel
+  HTTP par frappe :
+  - `client-yjs-update` : les mises à jour Yjs, opaques pour le serveur ;
+  - `client-awareness` : curseurs et sélections.
+- **Transparence** : le prof apparaît dans la présence, donc l'élève le voit.
+  Son arrivée écrit aussi l'heure de dernière lecture.
+- **Persistance** : inchangée. C'est l'élève propriétaire qui enregistre
+  l'état par `PATCH /api/documents/{id}`, au format JSON d'aujourd'hui. Le
+  serveur ne stocke aucun format Yjs.
+
+### Réglages qui comptent pour la co-édition
+
+Dans `config/reverb.php` :
+
+- `accept_client_events_from` reste à **`members`**. Reverb n'accepte alors un
+  `client-*` que d'une connexion déjà membre du canal, et estampille lui-même
+  le `user_id` authentifié : personne ne peut se faire passer pour un autre.
+  **Ne jamais passer à `all`.**
+- `max_message_size` et `max_request_size` sont à **3 Mo**, au-dessus de la
+  limite des documents (2 Mo). Les valeurs par défaut (10 Ko) rejetaient la
+  diffusion d'un gros instantané.
+- La limitation de débit reste désactivée : une session Yjs envoie beaucoup
+  de petits messages.
 
 ## Développement
 
