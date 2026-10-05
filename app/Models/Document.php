@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\DocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -49,5 +50,47 @@ class Document extends Model
     public function assignment(): BelongsTo
     {
         return $this->belongsTo(Assignment::class);
+    }
+
+    /**
+     * Groupe auquel ce document appartient, s'il est partagé.
+     *
+     * @return BelongsTo<Group, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class, 'group_id');
+    }
+
+    public function isShared(): bool
+    {
+        return $this->group_id !== null;
+    }
+
+    /**
+     * Documents strictement personnels, hors espaces de groupe.
+     *
+     * @param  Builder<Document>  $query
+     */
+    public function scopePersonal(Builder $query): void
+    {
+        $query->whereNull('group_id');
+    }
+
+    /**
+     * Documents atteignables : les siens, et ceux des groupes dont on est
+     * membre. La Policy décide ensuite de ce qu'on peut en faire.
+     *
+     * @param  Builder<Document>  $query
+     */
+    public function scopeVisibleTo(Builder $query, User $user): void
+    {
+        $query->where(function (Builder $query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->orWhereHas(
+                    'group.members',
+                    fn (Builder $members) => $members->whereKey($user->id),
+                );
+        });
     }
 }

@@ -7,6 +7,9 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\GroupDocumentController;
+use App\Http\Controllers\GroupMembershipController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonMediumController;
 use App\Http\Controllers\LiveTrackingController;
@@ -117,6 +120,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/assignments/{assignment}/start', [AssignmentWorkController::class, 'start']);
         // Ancien nom, conservé le temps que l'application passe à /start.
         Route::post('/assignments/{assignment}/copy', [AssignmentWorkController::class, 'start']);
+    });
+
+    // Groupes d'élèves
+    Route::post('/groups/join', [GroupMembershipController::class, 'join'])
+        ->middleware('throttle:join-group');
+
+    Route::get('/groups', [GroupController::class, 'index']);
+    Route::get('/groups/{group}', [GroupController::class, 'show']);
+    Route::get('/groups/{group}/documents', [GroupDocumentController::class, 'index']);
+
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::post('/groups', [GroupController::class, 'store']);
+        Route::patch('/groups/{group}', [GroupController::class, 'update']);
+        Route::delete('/groups/{group}', [GroupController::class, 'destroy']);
+        Route::post('/groups/{group}/code', [GroupController::class, 'regenerateCode']);
+        Route::delete('/groups/{group}/members/{participant}', [GroupMembershipController::class, 'remove']);
+        Route::delete('/groups/{group}/membership', [GroupMembershipController::class, 'leave']);
+        Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store']);
     });
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'show']);

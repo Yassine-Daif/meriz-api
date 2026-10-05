@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Assignment;
 use App\Models\Classroom;
 use App\Models\Document;
+use App\Models\Group;
 use App\Models\Lesson;
 use App\Models\LessonMedium;
 use App\Models\Submission;
@@ -58,7 +59,32 @@ class AppServiceProvider extends ServiceProvider
                 throw (new ModelNotFoundException)->setModel(Document::class);
             }
 
-            return $user->documents()->whereKey($value)->firstOrFail();
+            // Les siens, et ceux des groupes dont il est membre. La Policy
+            // décide ensuite de ce qu'il peut en faire.
+            return Document::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {group} n'est cherché que parmi les groupes qu'il a créés ou dont il
+        // est membre : un non-membre reçoit le même 404 qu'un groupe inexistant.
+        Route::bind('group', function (string $value) {
+            $user = request()->user();
+
+            if (! $user || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(Group::class);
+            }
+
+            return Group::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {participant} n'est cherché que parmi les membres du groupe résolu.
+        Route::bind('participant', function (string $value, RoutingRoute $route) {
+            $group = $route->parameter('group');
+
+            if (! $group instanceof Group || ! ctype_digit($value)) {
+                throw (new ModelNotFoundException)->setModel(User::class);
+            }
+
+            return $group->members()->whereKey((int) $value)->firstOrFail();
         });
 
         // {classroom} n'est cherchée que parmi les classes que l'utilisateur
@@ -156,6 +182,13 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(20)->by('login-ip:'.$request->ip()),
             ];
         });
+
+        // Contre la devinette de codes de groupe.
+        RateLimiter::for('join-group', fn (Request $request) => [
+            Limit::perMinute(10)->by('join-group:'.$request->user()?->id),
+            Limit::perHour(50)->by('join-group-hour:'.$request->user()?->id),
+            Limit::perMinute(30)->by('join-group-ip:'.$request->ip()),
+        ]);
 
         // Contre la devinette de codes de classe.
         RateLimiter::for('join-classroom', fn (Request $request) => [

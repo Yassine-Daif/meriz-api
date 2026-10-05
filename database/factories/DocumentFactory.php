@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Assignment;
 use App\Models\Document;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -26,6 +27,14 @@ class DocumentFactory extends Factory
                 'settings' => ['zoom' => 1],
             ]),
         ];
+    }
+
+    /**
+     * Document partagé dans l'espace d'un groupe.
+     */
+    public function forGroup(Group $group): static
+    {
+        return $this->state(fn (array $attributes) => ['group_id' => $group->id]);
     }
 
     /**

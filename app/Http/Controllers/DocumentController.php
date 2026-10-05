@@ -24,8 +24,11 @@ class DocumentController extends Controller
     {
         Gate::authorize('viewAny', Document::class);
 
+        // Liste strictement personnelle : les documents de groupe se listent
+        // par GET /api/groups/{id}/documents.
         $documents = $request->user()->documents()
-            ->select(['id', 'name', 'assignment_id', 'last_observed_at', 'created_at', 'updated_at'])
+            ->personal()
+            ->select(['id', 'name', 'assignment_id', 'group_id', 'last_observed_at', 'created_at', 'updated_at'])
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
             ->paginate($request->perPage())

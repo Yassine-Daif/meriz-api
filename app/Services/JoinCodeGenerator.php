@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Classroom;
+use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
 /**
@@ -12,17 +13,23 @@ class JoinCodeGenerator
 {
     private const MAX_ATTEMPTS = 5;
 
-    public function generate(): string
+    /**
+     * Code unique pour le modèle visé : les classes par défaut, les groupes
+     * en passant leur classe.
+     *
+     * @param  class-string<Model>  $model
+     */
+    public function generate(string $model = Classroom::class): string
     {
         for ($i = 0; $i < self::MAX_ATTEMPTS; $i++) {
             $code = $this->randomCode();
 
-            if (! Classroom::where('join_code', $code)->exists()) {
+            if (! $model::where('join_code', $code)->exists()) {
                 return $code;
             }
         }
 
-        throw new RuntimeException('Impossible de générer un code de classe unique.');
+        throw new RuntimeException('Impossible de générer un code unique.');
     }
 
     /**

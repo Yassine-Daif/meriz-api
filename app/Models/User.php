@@ -53,6 +53,24 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<Group, $this>
+     */
+    public function createdGroups(): HasMany
+    {
+        return $this->hasMany(Group::class, 'creator_id');
+    }
+
+    /**
+     * @return BelongsToMany<Group, $this>
+     */
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'work_group_user', 'user_id', 'group_id')
+            ->as('membership')
+            ->withTimestamps();
+    }
+
+    /**
      * @return HasMany<Submission, $this>
      */
     public function submissions(): HasMany

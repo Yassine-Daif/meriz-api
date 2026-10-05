@@ -25,7 +25,9 @@ class CreateDocument
             // Verrou sur le compte : deux créations simultanées ne dépassent pas le quota.
             User::whereKey($owner->id)->lockForUpdate()->first();
 
-            if ($owner->documents()->count() >= config('documents.max_per_user')) {
+            // Seuls ses documents personnels comptent : ceux d'un groupe
+            // relèvent du quota du groupe.
+            if ($owner->documents()->personal()->count() >= config('documents.max_per_user')) {
                 throw ValidationException::withMessages(['content' => self::QUOTA_MESSAGE]);
             }
 

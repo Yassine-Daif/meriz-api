@@ -3,18 +3,22 @@
 namespace App\Policies;
 
 use App\Models\Document;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * Un utilisateur n'accède qu'à ses propres documents.
+ * Un document est soit personnel, soit partagé dans un groupe.
  *
- * Le refus prend la forme d'un 404 : on ne révèle pas qu'un document
- * appartenant à quelqu'un d'autre existe.
+ * Personnel : seul son propriétaire y touche. Partagé : tous les membres du
+ * groupe le lisent et le modifient, c'est un espace commun. Le refus prend la
+ * forme d'un 404 : on ne révèle pas qu'un document existe.
  */
 class DocumentPolicy
 {
+    public const DELETE_MESSAGE = 'Seul l\'auteur du document ou le créateur du groupe peut le supprimer.';
+
     public function viewAny(User $user): bool
     {
         return true;
@@ -27,32 +31,62 @@ class DocumentPolicy
 
     public function view(User $user, Document $document): Response
     {
-        return $this->owns($user, $document);
+        return $this->reachable($user, $document)
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
     public function update(User $user, Document $document): Response
     {
-        return $this->owns($user, $document);
+        return $this->reachable($user, $document)
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
+    /**
+     * Supprimer : celui qui a créé le document, ou le créateur du groupe.
+     * Un membre ne supprime pas le travail d'un autre.
+     */
     public function delete(User $user, Document $document): Response
     {
-        return $this->owns($user, $document);
+        $group = $document->group;
+
+        // Document personnel : son propriétaire, et personne d'autre.
+        if ($group === null) {
+            return $document->user_id === $user->id
+                ? Response::allow()
+                : Response::denyAsNotFound();
+        }
+
+        // Quitter le groupe, ou en être retiré, ferme l'accès : même pour qui
+        // a créé le document, il appartient à l'espace commun.
+        if (! $this->belongsToGroup($user, $group)) {
+            return Response::denyAsNotFound();
+        }
+
+        if ($document->user_id === $user->id || $group->isAdministeredBy($user)) {
+            return Response::allow();
+        }
+
+        // Un membre du groupe sait que le document existe : refus clair.
+        return Response::deny(self::DELETE_MESSAGE);
     }
 
     /**
      * Rejoindre la session de co-édition d'un document.
      *
      * Cette règle n'invente rien : elle compose celles qui existent déjà.
-     * Elle ouvre donc au seul couple élève propriétaire et prof du devoir
-     * lié, ce dernier uniquement quand le suivi en direct est activé.
-     *
-     * Un document personnel n'a pas de devoir : aucun prof n'y entre. Et la
-     * règle part du devoir *de ce document*, donc un autre devoir ne donne
-     * jamais accès.
+     * C'est le seul endroit où l'on ouvre la co-édition à de nouveaux
+     * participants.
      */
     public function collaborate(User $user, Document $document): bool
     {
+        // 0. Document partagé : seule l'appartenance au groupe compte, même
+        //    pour qui l'a créé. Être retiré du groupe ferme l'accès.
+        if ($document->isShared()) {
+            return $this->belongsToGroup($user, $document->group);
+        }
+
         // 1. L'élève, sur son propre travail.
         if ($document->user_id === $user->id) {
             return true;
@@ -66,14 +100,26 @@ class DocumentPolicy
             return true;
         }
 
-        // 3. Point d'extension : le travail de groupe ajoutera ses membres ici.
+        // 3. Point d'extension : d'autres participants s'ajouteront ici.
         return false;
     }
 
-    private function owns(User $user, Document $document): Response
+    /**
+     * Atteignable en lecture et en écriture.
+     *
+     * Un document partagé relève du groupe : tous ses membres y touchent, et
+     * un ancien membre n'y touche plus, même s'il l'avait créé. Un document
+     * personnel ne regarde que son propriétaire.
+     */
+    private function reachable(User $user, Document $document): bool
     {
-        return $document->user_id === $user->id
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $document->isShared()
+            ? $this->belongsToGroup($user, $document->group)
+            : $document->user_id === $user->id;
+    }
+
+    private function belongsToGroup(User $user, ?Group $group): bool
+    {
+        return $group !== null && ($group->isAdministeredBy($user) || $group->hasMember($user));
     }
 }
