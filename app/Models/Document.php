@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Document d'un utilisateur.
@@ -62,6 +63,14 @@ class Document extends Model
         return $this->belongsTo(Group::class, 'group_id');
     }
 
+    /**
+     * @return HasMany<Comment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     public function isShared(): bool
     {
         return $this->group_id !== null;
@@ -78,8 +87,12 @@ class Document extends Model
     }
 
     /**
-     * Documents atteignables : les siens, et ceux des groupes dont on est
-     * membre. La Policy décide ensuite de ce qu'on peut en faire.
+     * Documents atteignables par une route : les siens, ceux des groupes dont
+     * on est membre, et les travaux des devoirs dont on est le prof.
+     *
+     * Atteignable ne veut pas dire permis : les Policies décident ensuite de
+     * ce qu'on peut en faire. Un prof résout ainsi le travail d'un élève pour
+     * le commenter, sans pouvoir le lire ni le modifier par /api/documents.
      *
      * @param  Builder<Document>  $query
      */
@@ -90,6 +103,10 @@ class Document extends Model
                 ->orWhereHas(
                     'group.members',
                     fn (Builder $members) => $members->whereKey($user->id),
+                )
+                ->orWhereHas(
+                    'assignment.classroom',
+                    fn (Builder $classroom) => $classroom->where('teacher_id', $user->id),
                 );
         });
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\AssignmentWorkController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupDocumentController;
@@ -138,6 +139,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/groups/{group}/members/{participant}', [GroupMembershipController::class, 'remove']);
         Route::delete('/groups/{group}/membership', [GroupMembershipController::class, 'leave']);
         Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store']);
+    });
+
+    // Commentaires d'un travail : généraux, ou posés sur le schéma.
+    Route::get('/documents/{document}/comments', [CommentController::class, 'index']);
+
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::post('/documents/{document}/comments', [CommentController::class, 'store']);
+        Route::post('/comments/{comment}/resolution', [CommentController::class, 'resolve']);
+        Route::delete('/comments/{comment}/resolution', [CommentController::class, 'reopen']);
+        Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
     });
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'show']);

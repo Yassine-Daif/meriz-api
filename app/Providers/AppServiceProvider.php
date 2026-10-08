@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Assignment;
 use App\Models\Classroom;
+use App\Models\Comment;
 use App\Models\Document;
 use App\Models\Group;
 use App\Models\Lesson;
@@ -62,6 +63,19 @@ class AppServiceProvider extends ServiceProvider
             // Les siens, et ceux des groupes dont il est membre. La Policy
             // décide ensuite de ce qu'il peut en faire.
             return Document::visibleTo($user)->whereKey($value)->firstOrFail();
+        });
+
+        // {comment} n'est cherché que parmi les commentaires des travaux que
+        // l'utilisateur peut commenter : son travail, les devoirs dont il est
+        // le prof, les documents de ses groupes. Sinon, 404.
+        Route::bind('comment', function (string $value) {
+            $user = request()->user();
+
+            if (! $user || ! Str::isUlid($value)) {
+                throw (new ModelNotFoundException)->setModel(Comment::class);
+            }
+
+            return Comment::visibleTo($user)->whereKey($value)->firstOrFail();
         });
 
         // {group} n'est cherché que parmi les groupes qu'il a créés ou dont il

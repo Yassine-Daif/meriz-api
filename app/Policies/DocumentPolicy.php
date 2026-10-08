@@ -105,6 +105,33 @@ class DocumentPolicy
     }
 
     /**
+     * Commenter un travail, et voir ses commentaires.
+     *
+     * Comme `collaborate`, cette règle n'invente rien : elle compose celles
+     * qui existent. Une différence voulue : elle ne dépend **pas** du suivi
+     * en direct, car commenter n'est pas observer. Un prof corrige quand il
+     * veut, l'élève lui répond.
+     */
+    public function discuss(User $user, Document $document): bool
+    {
+        // 1. L'élève, sur son propre travail.
+        if ($document->user_id === $user->id) {
+            return true;
+        }
+
+        // 2. Le prof du devoir lié : AssignmentPolicy::manage dit déjà
+        //    « le prof de cette classe ».
+        $assignment = $document->assignment;
+
+        if ($assignment !== null && Gate::forUser($user)->allows('manage', $assignment)) {
+            return true;
+        }
+
+        // 3. Les membres du groupe, sur un document partagé.
+        return $this->belongsToGroup($user, $document->group);
+    }
+
+    /**
      * Atteignable en lecture et en écriture.
      *
      * Un document partagé relève du groupe : tous ses membres y touchent, et
