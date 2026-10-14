@@ -5,7 +5,10 @@ namespace App\Actions\Auth;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Services\AcademicEmailChecker;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Crée un compte. L'inscription est neutre : tout compte démarre élève,
@@ -36,9 +39,27 @@ class RegisterUser
             'is_academic' => $this->academic->isAcademic($email),
         ])->save();
 
+        $this->sendVerificationLink($user);
+
         return [
             'user' => $user,
             'token' => $this->issueToken->handle($user, $data['device_name'] ?? null),
         ];
+    }
+
+    /**
+     * L'envoi est direct, donc il peut échouer. Un service mail en panne ne
+     * doit pas faire échouer une inscription : le compte existe, la
+     * personne redemandera le lien.
+     */
+    private function sendVerificationLink(User $user): void
+    {
+        try {
+            event(new Registered($user));
+        } catch (Throwable $e) {
+            Log::error("Envoi du lien de vérification impossible pour l'utilisateur {$user->id}.", [
+                'exception' => $e,
+            ]);
+        }
     }
 }

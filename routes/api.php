@@ -4,6 +4,7 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignmentImageController;
 use App\Http\Controllers\AssignmentWorkController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
 use App\Http\Controllers\CommentController;
@@ -27,6 +28,15 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+    // Lien ouvert depuis une boîte mail : pas de jeton, c'est la signature
+    // qui authentifie. Répond par une redirection vers l'application.
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware('throttle:30,1')
+        ->name('verification.verify');
+
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware(['auth:sanctum', 'throttle:verify-email']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

@@ -12,10 +12,13 @@ use App\Models\LessonMedium;
 use App\Models\Submission;
 use App\Models\User;
 use App\Services\AcademicEmailChecker;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route as RoutingRoute;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -41,6 +44,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Password::defaults(fn () => Password::min(8));
+
+        // bootstrap/app.php n'appelle pas withEvents() : le câblage
+        // automatique du framework ne s'applique pas, on déclare donc
+        // nous-mêmes l'envoi du lien de vérification à l'inscription.
+        Event::listen(Registered::class, SendEmailVerificationNotification::class);
 
         $this->configureRateLimiting();
         $this->configureRouteBindings();
@@ -214,6 +222,14 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('register', fn (Request $request) => [
             Limit::perMinute(5)->by('register:'.$request->ip()),
             Limit::perHour(20)->by('register-hour:'.$request->ip()),
+        ]);
+
+        // Renvoi du lien de vérification : un email coûte cher, et sert à
+        // inonder une boîte si on ne le borne pas.
+        RateLimiter::for('verify-email', fn (Request $request) => [
+            Limit::perMinute(2)->by('verify-email:'.$request->user()?->id),
+            Limit::perHour(10)->by('verify-email-hour:'.$request->user()?->id),
+            Limit::perMinute(10)->by('verify-email-ip:'.$request->ip()),
         ]);
     }
 }

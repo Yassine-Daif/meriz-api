@@ -114,4 +114,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Validité du lien de vérification d'email
+    |--------------------------------------------------------------------------
+    |
+    | En minutes. Passé ce délai, le lien envoyé par email est refusé et la
+    | personne doit en redemander un.
+    |
+    */
+
+    'verification' => [
+        'expire' => (int) env('AUTH_VERIFICATION_EXPIRE', 60),
+    ],
+
 ];

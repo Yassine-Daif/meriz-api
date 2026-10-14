@@ -9,17 +9,23 @@ class UserPolicy
 {
     public const NOT_ACADEMIC_MESSAGE = 'Le mode prof est réservé aux adresses email scolaires ou universitaires.';
 
+    public const NOT_VERIFIED_MESSAGE = 'Confirme ton adresse email avant d\'activer le mode prof.';
+
     /**
-     * Seul un compte à email scolaire ou universitaire peut devenir prof.
+     * Devenir prof demande deux choses : une adresse scolaire ou
+     * universitaire, et la preuve qu'on la possède.
      *
-     * TODO : quand la vérification d'email existera, exiger aussi
-     * $user->hasVerifiedEmail(). Sans elle, n'importe qui peut revendiquer
-     * une adresse scolaire qu'il ne possède pas.
+     * Sans la vérification, n'importe qui revendiquerait une adresse
+     * scolaire qui n'est pas la sienne, et verrait le travail d'élèves.
      */
     public function becomeTeacher(User $user): Response
     {
         if (! $user->is_academic) {
             return Response::deny(self::NOT_ACADEMIC_MESSAGE);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return Response::deny(self::NOT_VERIFIED_MESSAGE);
         }
 
         return Response::allow();

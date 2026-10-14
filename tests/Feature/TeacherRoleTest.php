@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\User;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -35,6 +36,29 @@ class TeacherRoleTest extends TestCase
             ->assertJsonPath('message', UserPolicy::NOT_ACADEMIC_MESSAGE);
 
         $this->assertSame(UserRole::Student, $user->fresh()->role);
+    }
+
+    public function test_an_unverified_academic_account_cannot_become_teacher(): void
+    {
+        // Le domaine ne suffit pas : il faut prouver qu'on possède l'adresse.
+        $user = User::factory()->academic()->unverified()->create();
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/me/teacher-role')
+            ->assertForbidden()
+            ->assertJsonPath('message', UserPolicy::NOT_VERIFIED_MESSAGE);
+
+        $this->assertSame(UserRole::Student, $user->fresh()->role);
+    }
+
+    public function test_a_verified_non_academic_account_still_cannot_become_teacher(): void
+    {
+        $user = User::factory()->create(['email' => 'bob@gmail.com']);
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/me/teacher-role')
+            ->assertForbidden()
+            ->assertJsonPath('message', UserPolicy::NOT_ACADEMIC_MESSAGE);
     }
 
     public function test_academic_status_comes_from_the_server_not_the_email_alone(): void
@@ -69,6 +93,23 @@ class TeacherRoleTest extends TestCase
             'email' => 'claire@ac-lyon.fr',
             'password' => 'motdepasse-solide',
         ])->json('data.token');
+
+        // Juste inscrite, l'adresse n'est pas encore confirmée.
+        $this->withToken($token)->postJson('/api/me/teacher-role')
+            ->assertForbidden()
+            ->assertJsonPath('message', UserPolicy::NOT_VERIFIED_MESSAGE);
+
+        $user = User::firstWhere('email', 'claire@ac-lyon.fr');
+
+        $this->get(URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), [
+            'id' => $user->id,
+            'hash' => sha1($user->email),
+        ]))->assertRedirect();
+
+        // Deux requêtes d'un même test partagent l'application, donc le
+        // garde garde en mémoire l'utilisateur résolu tout à l'heure. En
+        // vrai, chaque requête est un processus neuf.
+        $this->app['auth']->forgetGuards();
 
         $this->withToken($token)->postJson('/api/me/teacher-role')
             ->assertOk()
