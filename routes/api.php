@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Account\AccountDeletionController;
+use App\Http\Controllers\Account\DataExportController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignmentImageController;
 use App\Http\Controllers\AssignmentWorkController;
@@ -44,6 +46,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [MeController::class, 'show']);
         Route::patch('/', [MeController::class, 'update'])->middleware('throttle:60,1');
         Route::post('/teacher-role', [TeacherRoleController::class, 'store'])->middleware('throttle:6,1');
+
+        // Emporter ses données, puis fermer son compte. Les deux ne
+        // regardent que le compte du jeton.
+        Route::get('/export', [DataExportController::class, 'show'])
+            ->middleware('throttle:export-data');
+        Route::delete('/', [AccountDeletionController::class, 'destroy'])
+            ->middleware('throttle:5,60');
     });
 
     // join est déclarée avant {classroom} pour ne pas être prise pour un id.

@@ -224,6 +224,13 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(20)->by('register-hour:'.$request->ip()),
         ]);
 
+        // Export de ses données : une requête lourde, qu'on ne répète pas
+        // en boucle.
+        RateLimiter::for('export-data', fn (Request $request) => [
+            Limit::perHour(3)->by('export:'.$request->user()?->id),
+            Limit::perDay(10)->by('export-day:'.$request->user()?->id),
+        ]);
+
         // Renvoi du lien de vérification : un email coûte cher, et sert à
         // inonder une boîte si on ne le borne pas.
         RateLimiter::for('verify-email', fn (Request $request) => [

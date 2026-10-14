@@ -31,7 +31,10 @@ class AuthenticateUser
 
         $valid = Hash::check($password, $user?->password ?? $this->dummyHash());
 
-        if (! $user || ! $valid) {
+        // Un compte supprimé par son titulaire est éteint : son email a
+        // changé, donc on n'arrive déjà pas ici, et c'est la seconde
+        // barrière. Même message, aucune information de plus.
+        if (! $user || ! $valid || $user->isAnonymized()) {
             throw ValidationException::withMessages([
                 'email' => self::FAILED_MESSAGE,
             ]);

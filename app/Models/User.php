@@ -27,6 +27,13 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
+     * Nom porté par un compte supprimé par son titulaire. Ce qui subsiste
+     * de lui ailleurs, un rendu noté, un commentaire dans un fil, s'affiche
+     * sous ce nom.
+     */
+    public const DELETED_NAME = 'Compte supprimé';
+
+    /**
      * @var array<string, mixed>
      */
     protected $attributes = [
@@ -45,6 +52,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'anonymized_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
             'is_academic' => 'boolean',
@@ -147,5 +155,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isTeacher(): bool
     {
         return $this->role === UserRole::Teacher;
+    }
+
+    /**
+     * Compte supprimé par son titulaire : vidé de son identité, et éteint.
+     * Il ne peut plus se connecter.
+     */
+    public function isAnonymized(): bool
+    {
+        return $this->anonymized_at !== null;
     }
 }
