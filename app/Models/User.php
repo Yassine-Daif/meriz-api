@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\UserRole;
 use App\Notifications\VerifyEmailAddress;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -16,12 +18,13 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * Fillable ne contient que les champs du profil. email, password, role et
- * is_academic ne s'écrivent que par forceFill, dans les actions dédiées.
+ * Fillable ne contient que les champs du profil. email, password, role,
+ * is_academic et is_admin ne s'écrivent que par forceFill, dans les actions
+ * et les commandes dédiées.
  */
 #[Fillable(['name', 'first_name', 'bio', 'bio_shared', 'contact', 'contact_shared', 'avatar_bg', 'avatar_fg'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -39,6 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $attributes = [
         'role' => 'student',
         'is_academic' => false,
+        'is_admin' => false,
         'bio_shared' => false,
         'contact_shared' => false,
     ];
@@ -53,6 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'anonymized_at' => 'datetime',
+            'is_admin' => 'boolean',
             'password' => 'hashed',
             'role' => UserRole::class,
             'is_academic' => 'boolean',
@@ -164,5 +169,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAnonymized(): bool
     {
         return $this->anonymized_at !== null;
+    }
+
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
+    }
+
+    /**
+     * Seule porte de la zone d'administration.
+     *
+     * is_admin ne s'écrit qu'en ligne de commande, par meriz:admin : il est
+     * absent de Fillable et de toutes les API Resources. Un compte supprimé
+     * par son titulaire n'entre pas, même s'il avait le droit.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isAdmin() && ! $this->isAnonymized();
     }
 }

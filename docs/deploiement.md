@@ -71,10 +71,26 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 - [ ] `composer install --no-dev --optimize-autoloader`
 - [ ] `php artisan migrate --force`
 - [ ] `php artisan config:cache route:cache event:cache`
+- [ ] **`php artisan filament:assets`** et **`php artisan filament:optimize`**,
+      après chaque déploiement. Sans ça, la zone admin s'affiche sans style.
 - [ ] **Planificateur actif** : `schedule:run` chaque minute par cron. C'est lui
       qui purge les jetons expirés.
 - [ ] `php artisan about` relu une fois en ligne : debug coupé, caches en place,
       bon pilote de base.
+
+## Zone d'administration
+
+- [ ] **L'extension PHP `intl`** activée sur le serveur : Filament l'exige, et
+      sans elle l'application ne démarre pas.
+- [ ] **Le premier administrateur créé en ligne de commande** :
+      `php artisan meriz:admin adresse@exemple.fr`. Il n'y a aucun autre moyen,
+      ni dans l'application, ni dans le panneau. Voir [admin.md](admin.md).
+- [ ] **`/admin` servi en HTTPS seulement**, comme le reste : la session de
+      l'administrateur voyage dans un cookie.
+- [ ] `SESSION_SECURE_COOKIE=true` en production, et `SESSION_DRIVER=database`
+      avec la table `sessions` migrée.
+- [ ] Facultatif, mais recommandé : restreindre `/admin` par IP au niveau du
+      serveur web, en plus du contrôle applicatif.
 
 ## Après la mise en ligne
 

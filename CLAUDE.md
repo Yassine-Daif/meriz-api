@@ -8,6 +8,8 @@ C'est Meriz API, le serveur de la plateforme Meriz. C'est une API JSON découpl�
 
 Point d'architecture fondateur. Le serveur est une API seulement, il renvoie du JSON, il ne rend jamais de page. L'interface vit dans l'autre dépôt, celui de l'application. On n'utilise ni Blade ni Inertia pour des pages, car le front est une application autonome qui tourne aussi en logiciel de bureau, où il n'y a pas de serveur pour rendre des pages.
 
+Une seule exception, assumée et à part : la zone d'administration sur `/admin`, en Filament, réservée au compte administrateur. Elle rend des pages et s'authentifie par session, mais elle vit hors de `/api`, n'ouvre aucune porte dans l'API, et l'API ne rend toujours aucune page. Voir `docs/admin.md`.
+
 ## Rôle et frontière
 
 Le serveur gère les comptes, la synchronisation des documents dans le cloud, les classes, puis plus tard les devoirs, les rendus et les commentaires. Il ne rend jamais l'interface. Il stocke et il autorise, rien de plus.

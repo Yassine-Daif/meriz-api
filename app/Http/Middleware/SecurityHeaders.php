@@ -36,6 +36,13 @@ class SecurityHeaders
     {
         $response = $next($request);
 
+        // La zone d'administration est la seule surface qui rend des pages :
+        // une CSP « default-src 'none' » y bloquerait tout le CSS et tout le
+        // JS. Filament pose ses propres entêtes.
+        if ($request->is('admin', 'admin/*')) {
+            return $response;
+        }
+
         foreach (self::HEADERS as $header => $value) {
             if (! $response->headers->has($header)) {
                 $response->headers->set($header, $value);
