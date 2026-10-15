@@ -53,6 +53,11 @@ In order to ensure that the Laravel community is welcoming to all, please review
 
 If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+## Licence
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Meriz API est un logiciel libre, publié sous licence [GNU AGPL 3.0](LICENSE).
+Toute version modifiée et distribuée, y compris simplement accessible par le
+réseau, doit rester ouverte sous la même licence et créditer l'auteur.
+
+Les dépendances gardent leur propre licence : Laravel, par exemple, reste sous
+licence MIT.
