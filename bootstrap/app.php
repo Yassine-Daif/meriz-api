@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,11 +15,14 @@ return Application::configure(basePath: dirname(__DIR__))
     // avec le Bearer token, jamais par cookie de session.
     ->withBroadcasting(
         __DIR__.'/../routes/channels.php',
-        ['middleware' => ['auth:sanctum']],
+        ['middleware' => ['auth:sanctum', 'throttle:broadcasting']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Pas de page de connexion : un invité reçoit un 401 JSON, jamais une redirection.
         $middleware->redirectGuestsTo(fn () => null);
+
+        // Entêtes de sécurité sur toute réponse, erreurs comprises.
+        $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // API seule : toute erreur est rendue en JSON, jamais en page HTML.

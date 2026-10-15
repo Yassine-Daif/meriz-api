@@ -36,7 +36,13 @@ return [
     */
 
     // Durée de vie d'un jeton, en minutes. 30 jours par défaut.
-    'expiration' => (int) env('SANCTUM_TOKEN_EXPIRATION', 60 * 24 * 30) ?: null,
+    //
+    // Une valeur absente, vide ou non positive retombe sur ce défaut : un
+    // réglage raté en production ne doit pas rendre les jetons éternels sans
+    // bruit. Il n'y a donc pas de moyen de désactiver l'expiration.
+    'expiration' => ((int) env('SANCTUM_TOKEN_EXPIRATION', 0)) > 0
+        ? (int) env('SANCTUM_TOKEN_EXPIRATION')
+        : 60 * 24 * 30,
 
     /*
     |--------------------------------------------------------------------------

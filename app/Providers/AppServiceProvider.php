@@ -196,6 +196,20 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureRateLimiting(): void
     {
+        // Plafond général de l'API : il assure la couverture, pas la finesse.
+        // Les routes sensibles gardent en plus leur limite propre, bien plus
+        // basse ; les deux s'appliquent, la plus basse gagne. Sans lui, un
+        // jeton volé aspirerait toutes les lectures à pleine vitesse.
+        RateLimiter::for('api', fn (Request $request) => [
+            Limit::perMinute(300)->by('api:'.($request->user()?->id ?: $request->ip())),
+        ]);
+
+        // Autorisation d'un canal websocket : un abonnement légitime est rare,
+        // même en co-édition, car le canal reste ensuite ouvert.
+        RateLimiter::for('broadcasting', fn (Request $request) => [
+            Limit::perMinute(120)->by('broadcast:'.($request->user()?->id ?: $request->ip())),
+        ]);
+
         RateLimiter::for('login', function (Request $request) {
             $email = Str::lower(trim((string) $request->input('email')));
 

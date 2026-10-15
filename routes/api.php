@@ -24,12 +24,14 @@ use App\Http\Controllers\SubmissionGradeController;
 use App\Http\Controllers\TeacherRoleController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/health', fn () => response()->json(['status' => 'ok']));
+Route::get('/health', fn () => response()->json(['status' => 'ok']))
+    ->middleware('throttle:60,1');
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
-    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->middleware(['auth:sanctum', 'throttle:api']);
 
     // Lien ouvert depuis une boîte mail : pas de jeton, c'est la signature
     // qui authentifie. Répond par une redirection vers l'application.
@@ -41,7 +43,9 @@ Route::prefix('auth')->group(function () {
         ->middleware(['auth:sanctum', 'throttle:verify-email']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+// throttle:api est le plafond général. Chaque route sensible garde en plus sa
+// propre limite, bien plus basse.
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::prefix('me')->group(function () {
         Route::get('/', [MeController::class, 'show']);
         Route::patch('/', [MeController::class, 'update'])->middleware('throttle:60,1');
