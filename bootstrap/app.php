@@ -1,9 +1,14 @@
 <?php
 
+use App\Exceptions\ApiErrorMessages;
 use App\Http\Middleware\SecurityHeaders;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -28,11 +33,40 @@ return Application::configure(basePath: dirname(__DIR__))
         // API seule : toute erreur est rendue en JSON, jamais en page HTML.
         $exceptions->shouldRenderJsonWhen(fn () => true);
 
-        // Un seul 404, sans nom de modèle ni identifiant, même en debug :
-        // un document d'autrui est indiscernable d'un document inexistant.
+        // Les trois messages suivants sont écrits en dur dans le framework :
+        // aucun fichier de langue ne les atteint, on les rend donc ici.
+        $exceptions->render(fn (AuthenticationException $e) => response()->json(
+            ['message' => ApiErrorMessages::UNAUTHENTICATED],
+            401,
+        ));
+
+        // Les entêtes sont conservés : Retry-After dit quand réessayer.
+        $exceptions->render(fn (ThrottleRequestsException $e) => response()->json(
+            ['message' => ApiErrorMessages::TOO_MANY_REQUESTS],
+            429,
+            $e->getHeaders(),
+        ));
+
+        // 404, 405, 413, 503, et le 403 sans message : voir ApiErrorMessages.
+        // Un refus de Policy, déjà en français, sort intact.
         $exceptions->render(function (HttpExceptionInterface $e) {
-            if ($e->getStatusCode() === 404) {
-                return response()->json(['message' => 'Ressource introuvable.'], 404);
+            $message = ApiErrorMessages::forHttpException($e);
+
+            return $message === null
+                ? null
+                : response()->json(['message' => $message], $e->getStatusCode());
+        });
+
+        // Dernier filet : en production, une erreur inattendue répond en
+        // français. En debug, on laisse Laravel afficher la trace.
+        $exceptions->render(function (Throwable $e) {
+            if (config('app.debug')
+                || $e instanceof HttpExceptionInterface
+                || $e instanceof HttpResponseException
+                || $e instanceof ValidationException) {
+                return null;
             }
+
+            return response()->json(['message' => ApiErrorMessages::SERVER_ERROR], 500);
         });
     })->create();

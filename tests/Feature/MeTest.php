@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\ApiErrorMessages;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,7 +15,7 @@ class MeTest extends TestCase
     {
         $this->getJson('/api/me')
             ->assertUnauthorized()
-            ->assertExactJson(['message' => 'Unauthenticated.']);
+            ->assertExactJson(['message' => ApiErrorMessages::UNAUTHENTICATED]);
     }
 
     public function test_profile_without_json_accept_header_still_answers_401_json(): void
