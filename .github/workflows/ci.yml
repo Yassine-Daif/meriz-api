@@ -1,0 +1,73 @@
+name: Tests
+
+# Vérification seulement : aucun secret, aucun déploiement. Une contribution
+# extérieure doit pouvoir être contrôlée sans qu'on lui donne quoi que ce soit.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # 8.3 est le plancher déclaré dans composer.json, 8.5 la version sur
+        # laquelle le projet est développé. Si le plancher casse, on le saura.
+        php: ['8.3', '8.5']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          # intl est exigée par Filament, zip par Composer, sqlite par la base
+          # de test. Les autres sont déjà là, on les nomme pour mémoire.
+          extensions: intl, zip, sqlite3, pdo_sqlite, fileinfo, mbstring
+          coverage: none
+
+      - name: Retrouver le cache des dépendances
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
+
+      - name: Vérifier composer.json
+        run: composer validate --strict --no-check-publish
+
+      - name: Installer les dépendances
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Préparer l'environnement
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Appliquer les migrations sur une base vide
+        # Les tests tournent sur une base SQLite en mémoire, donc cette étape
+        # ne leur sert pas. Elle vérifie autre chose : que les migrations
+        # s'appliquent proprement sur une base réelle et vide. C'est ce qui
+        # casse quand une migration est écrite de travers, et aucun test ne
+        # l'attrape.
+        run: |
+          touch database/database.sqlite
+          php artisan migrate --force
+
+      - name: Lancer les tests
+        run: php artisan test
+
+      - name: Contrôler le style
+        run: vendor/bin/pint --test

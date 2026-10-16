@@ -1,57 +1,120 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Meriz API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Tests](https://github.com/Yassine-Daif/meriz-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Yassine-Daif/meriz-api/actions/workflows/ci.yml)
+[![Licence AGPL 3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue)](LICENSE)
 
-## About Laravel
+Le serveur de la plateforme Meriz, un outil de modélisation de bases de données
+pour l'enseignement : des élèves dessinent des schémas, des profs donnent des
+devoirs, suivent le travail et le corrigent.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Ce dépôt ne contient **que le serveur**. C'est une API JSON, authentifiée par
+jeton. L'interface vit dans un autre dépôt, en version web et en logiciel de
+bureau Tauri, et appelle cette API par internet. Le serveur stocke et autorise,
+il ne rend pas de page — à une exception près, la zone d'administration.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## La stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| | |
+|---|---|
+| Framework | Laravel 13, PHP 8.3 ou plus |
+| Authentification | Laravel Sanctum, jetons Bearer, jamais de cookie de session pour l'API |
+| Temps réel | Laravel Reverb, pour l'observation et la co-édition |
+| Administration | Filament, sur `/admin`, réservée à un compte administrateur |
+| Base de données | SQLite en développement, MySQL ou PostgreSQL en production |
 
-## Learning Laravel
+## Démarrer en développement
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+**Prérequis** : PHP 8.3 ou plus avec les extensions `intl` et `zip` activées, et
+Composer. L'extension `intl` est exigée par Filament, `zip` par Composer :
+elles ne sont pas toujours actives sur une installation neuve, vérifie avec
+`php -m`.
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/Yassine-Daif/meriz-api.git
+cd meriz-api
+composer setup   # installe, crée le .env, génère la clé, migre
+composer dev     # sert sur http://localhost:8000
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+`composer setup` crée la base SQLite dans `database/database.sqlite`. Elle reste
+sur ta machine, elle n'est pas suivie par git.
 
-## Contributing
+Pour vérifier que tout répond :
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+curl http://localhost:8000/api/health
+# {"status":"ok"}
+```
 
-## Code of Conduct
+### Deux commandes qui font gagner du temps
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan meriz:demo-data          # un prof, trois classes, 42 élèves de test
+php artisan meriz:admin ton@email.fr # accès à la zone d'administration
+```
 
-## Security Vulnerabilities
+`meriz:demo-data` affiche les identifiants qu'elle crée. Elle refuse de
+s'exécuter en production sans `--force`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Temps réel
+
+L'observation en direct et la co-édition passent par un websocket, servi par un
+second processus :
+
+```bash
+php artisan reverb:start
+```
+
+Tout le reste de l'API fonctionne sans lui. Détails dans
+[docs/websocket.md](docs/websocket.md).
+
+## Les tests
+
+500 tests couvrent l'API, dont une bonne part vérifie le cloisonnement des
+données : qu'un élève ne voit pas le travail d'un autre, qu'un prof ne voit pas
+une classe qui n'est pas la sienne.
+
+```bash
+composer test            # ou php artisan test
+vendor/bin/pint          # style de code, --test pour seulement vérifier
+```
+
+La suite tourne sur une base SQLite en mémoire, il n'y a rien à préparer.
+
+## La structure
+
+| Dossier | Ce qu'on y trouve |
+|---|---|
+| `routes/api.php` | Les 81 points d'entrée de l'API |
+| `app/Http/Controllers` | Contrôleurs fins : autoriser, déléguer, répondre |
+| `app/Http/Requests` | La validation des entrées, une Form Request par point d'entrée |
+| `app/Http/Resources` | Ce qui sort en JSON, en liste blanche de champs |
+| `app/Policies` | Les autorisations, le cœur du cloisonnement |
+| `app/Actions` | La logique métier, une action par geste |
+| `app/Models` | Les modèles Eloquent et leurs portées de visibilité |
+| `app/Filament` | La zone d'administration |
+| `database/migrations` | Le schéma |
+| `tests/Feature` | Les tests, groupés par domaine |
+| `docs/` | Le reste de la documentation |
+
+## Documentation
+
+| Document | Sujet |
+|---|---|
+| [docs/api.md](docs/api.md) | Toutes les routes, qui y a droit, la forme des réponses et des erreurs |
+| [docs/securite.md](docs/securite.md) | Ce qui est protégé, comment, et les limites assumées |
+| [docs/admin.md](docs/admin.md) | La zone d'administration et comment désigner un administrateur |
+| [docs/email.md](docs/email.md) | Envoi des emails et vérification d'adresse |
+| [docs/websocket.md](docs/websocket.md) | Les canaux temps réel, en développement et en production |
+| [docs/deploiement.md](docs/deploiement.md) | La liste à dérouler à la mise en ligne |
+
+## Contribuer
+
+Les contributions sont bienvenues : [CONTRIBUTING.md](CONTRIBUTING.md) explique
+comment installer, lancer les tests et ouvrir une pull request.
+
+Pour une **faille de sécurité**, n'ouvre pas d'issue publique : la procédure est
+dans [SECURITY.md](SECURITY.md).
 
 ## Licence
 
