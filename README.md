@@ -85,7 +85,7 @@ La suite tourne sur une base SQLite en mémoire, il n'y a rien à préparer.
 
 | Dossier | Ce qu'on y trouve |
 |---|---|
-| `routes/api.php` | Les 81 points d'entrée de l'API |
+| `routes/api.php` | Les 83 points d'entrée de l'API |
 | `app/Http/Controllers` | Contrôleurs fins : autoriser, déléguer, répondre |
 | `app/Http/Requests` | La validation des entrées, une Form Request par point d'entrée |
 | `app/Http/Resources` | Ce qui sort en JSON, en liste blanche de champs |

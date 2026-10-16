@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Notifications\ResetPasswordLink;
 use App\Notifications\VerifyEmailAddress;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -155,6 +156,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailAddress);
+    }
+
+    /**
+     * L'email de réinitialisation, en français. Le jeton reste fabriqué et
+     * haché par Laravel, seul le texte et l'adresse du lien changent.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordLink($token));
     }
 
     public function isTeacher(): bool

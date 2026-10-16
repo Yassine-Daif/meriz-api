@@ -24,6 +24,8 @@ class RouteCoverageTest extends TestCase
         'api/auth/register' => "Création de compte : il n'y a pas encore de jeton.",
         'api/auth/login' => 'Obtention du jeton.',
         'api/auth/email/verify/{id}/{hash}' => "Lien ouvert depuis une boîte mail : c'est la signature qui authentifie.",
+        'api/auth/password/forgot' => "Mot de passe oublié : par définition, il n'y a pas de jeton.",
+        'api/auth/password/reset' => "Le jeton reçu par email tient lieu de preuve, il n'y en a pas d'autre.",
     ];
 
     /**

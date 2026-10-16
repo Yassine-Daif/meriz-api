@@ -238,6 +238,24 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(20)->by('register-hour:'.$request->ip()),
         ]);
 
+        // Mot de passe oublié. Deux bornes, pour deux abus différents : par
+        // adresse demandée, pour qu'on n'inonde pas une boîte précise ; par
+        // IP, pour qu'on ne balaye pas une liste d'adresses.
+        RateLimiter::for('password-forgot', function (Request $request) {
+            $email = Str::lower(trim((string) $request->input('email')));
+
+            return [
+                Limit::perMinute(3)->by('forgot:'.$email),
+                Limit::perHour(10)->by('forgot-hour:'.$email),
+                Limit::perMinute(10)->by('forgot-ip:'.$request->ip()),
+            ];
+        });
+
+        // Le jeton n'est pas devinable, mais une limite coûte peu.
+        RateLimiter::for('password-reset', fn (Request $request) => [
+            Limit::perMinute(6)->by('reset-ip:'.$request->ip()),
+        ]);
+
         // Export de ses données : une requête lourde, qu'on ne répète pas
         // en boucle.
         RateLimiter::for('export-data', fn (Request $request) => [

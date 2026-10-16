@@ -1,6 +1,6 @@
 # Les points d'entrée de l'API
 
-Les 81 routes du serveur, par domaine. Relevé depuis `routes/api.php` : en cas
+Les 83 routes du serveur, par domaine. Relevé depuis `routes/api.php` : en cas
 de doute, c'est ce fichier qui fait foi, et `php artisan route:list` qui le
 confirme.
 
@@ -99,11 +99,33 @@ plus basse gagne.
 | POST | `/api/auth/logout` | jeton | révoque le jeton courant |
 | GET | `/api/auth/email/verify/{id}/{hash}` | lien signé | 30/min par IP |
 | POST | `/api/auth/email/verification-notification` | jeton | 2/min, 10/h |
+| POST | `/api/auth/password/forgot` | public | 3/min et 10/h par adresse, 10/min par IP |
+| POST | `/api/auth/password/reset` | public | 6/min par IP |
 
 L'inscription et la connexion renvoient le compte et son jeton. La vérification
 d'email répond par une **redirection vers l'application**, avec le résultat
 dans le paramètre `verification` : `success`, `already`, `expired` ou `invalid`.
 Détails dans [email.md](email.md).
+
+**Mot de passe oublié**, en deux temps. `/password/forgot` prend une adresse et
+répond **toujours la même chose**, mot pour mot, que l'adresse existe ou non :
+
+```json
+{ "message": "Si un compte existe pour cette adresse, un lien de réinitialisation vient de partir." }
+```
+
+Le lien reçu mène à l'application, pas à l'API, avec `token` et `email` dans
+l'adresse. Elle demande le nouveau mot de passe, puis appelle
+`/password/reset` avec les trois champs `token`, `email` et `password`. Le
+jeton vaut 60 minutes et ne sert qu'une fois.
+
+Trois choses se passent à la réinitialisation, et les deux dernières comptent :
+le mot de passe change, l'adresse devient **vérifiée** — suivre ce lien prouve
+qu'on lit cette boîte — et **tous les jetons du compte sont révoqués**, sur
+tous les appareils. C'est là qu'un compte volé se reprend.
+
+La réponse ne contient **aucun jeton** : l'application repasse par la
+connexion. Un lien reçu par email n'ouvre donc jamais de session à lui seul.
 
 ## Son propre compte
 

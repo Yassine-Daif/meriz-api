@@ -20,4 +20,10 @@ return [
     // reçoit le résultat dans le paramètre verification.
     'email_verified_path' => env('FRONTEND_EMAIL_VERIFIED_PATH', '/email-verifie'),
 
+    // La page où l'on choisit un nouveau mot de passe. Contrairement au lien
+    // de vérification, qui passe d'abord par l'API, celui-ci mène droit à
+    // l'application : elle reçoit token et email dans l'adresse, puis les
+    // renvoie à POST /api/auth/password/reset avec le nouveau mot de passe.
+    'password_reset_path' => env('FRONTEND_PASSWORD_RESET_PATH', '/reinitialiser-mot-de-passe'),
+
 ];

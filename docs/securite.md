@@ -67,10 +67,14 @@ appeler `POST /api/assignments/{id}/start`, ce qui lui crée un document de
 travail inutile dans ses documents. Aucune fuite, aucun accès gagné : laissé tel
 quel pour ne pas changer le contrat de l'application.
 
-### Pas de réinitialisation de mot de passe
+## Ajouté depuis cette revue
 
-Elle n'existe pas encore. Qui perd son mot de passe perd son compte. C'est une
-phase à part, pas un défaut de cette revue.
+**La réinitialisation de mot de passe**, qui manquait et qui était signalée ici
+comme une limite. Elle existe désormais : lien à expiration envoyé par email,
+réponse générique qui ne dit jamais si une adresse existe, et surtout
+**révocation de tous les jetons** au moment du changement — c'est là qu'un
+compte volé se reprend. Un compte supprimé par son titulaire ne peut pas être
+repris de cette manière. Voir [api.md](api.md) et [email.md](email.md).
 
 ## Hors périmètre de cette revue
 

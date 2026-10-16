@@ -1,8 +1,14 @@
-# Envoi d'emails et vérification d'adresse
+# Envoi d'emails
 
-Le serveur envoie un seul email pour l'instant : le lien de confirmation
-d'adresse, à l'inscription et sur demande. Ce lien sert de garde-fou au mode
-prof, qui exige une adresse scolaire **et** confirmée.
+Le serveur envoie deux emails, et aucun autre :
+
+| Email | Quand | Où mène le lien |
+|---|---|---|
+| Confirmation d'adresse | à l'inscription, et sur demande | à l'**API**, qui valide puis renvoie à l'application |
+| Réinitialisation de mot de passe | sur demande, depuis l'écran de connexion | directement à l'**application**, qui demande le nouveau mot de passe |
+
+La confirmation d'adresse sert de garde-fou au mode prof, qui exige une adresse
+scolaire **et** confirmée.
 
 ## En développement
 
@@ -79,3 +85,36 @@ un rappel, et d'expliquer pourquoi le mode prof est refusé :
 
 Un compte non confirmé reste utilisable comme élève : documents, classes,
 devoirs, rendus, groupes. Seul le mode prof est verrouillé.
+
+## Mot de passe oublié
+
+**Un lien « mot de passe oublié »** sur l'écran de connexion, qui appelle
+`POST /api/auth/password/forgot` avec une adresse. La réponse est **toujours la
+même**, que l'adresse existe ou non : affiche-la telle quelle, sans chercher à
+deviner. Dire « cette adresse est inconnue » révélerait qui a un compte.
+
+**Un écran de nouveau mot de passe**, à l'adresse
+`FRONTEND_PASSWORD_RESET_PATH` (`/reinitialiser-mot-de-passe` par défaut). Le
+lien de l'email y mène avec deux paramètres :
+
+```
+https://app.meriz.fr/reinitialiser-mot-de-passe?token=c7fa84…&email=alice%40exemple.fr
+```
+
+L'écran renvoie les trois champs à `POST /api/auth/password/reset` :
+
+```json
+{ "token": "c7fa84…", "email": "alice@exemple.fr", "password": "le nouveau" }
+```
+
+200 quand c'est fait, 422 quand le lien est périmé, déjà utilisé ou falsifié —
+un seul message pour tous ces cas, `errors.token`.
+
+**Après un succès, renvoie vers la connexion.** Le serveur ne rend aucun
+jeton : le lien reçu par email n'ouvre pas de session à lui seul. Et surtout,
+**tous les jetons du compte viennent d'être révoqués** — si l'application avait
+une session ouverte sur un autre appareil, elle tombe. C'est voulu : c'est le
+moment où un compte volé se reprend.
+
+Le lien vaut 60 minutes (`config/auth.php`, `passwords.users.expire`) et ne
+sert qu'une fois. On ne peut pas en redemander un avant 60 secondes.

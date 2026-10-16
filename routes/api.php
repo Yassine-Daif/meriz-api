@@ -7,6 +7,7 @@ use App\Http\Controllers\AssignmentImageController;
 use App\Http\Controllers\AssignmentWorkController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
 use App\Http\Controllers\CommentController;
@@ -32,6 +33,15 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::post('/logout', [AuthController::class, 'logout'])
         ->middleware(['auth:sanctum', 'throttle:api']);
+
+    // Mot de passe oublié. Publiques par nécessité : on n'a pas de jeton
+    // quand on a perdu son mot de passe. La réponse de /forgot ne dit jamais
+    // si l'adresse existe.
+    Route::post('/password/forgot', [PasswordResetController::class, 'forgot'])
+        ->middleware('throttle:password-forgot');
+
+    Route::post('/password/reset', [PasswordResetController::class, 'reset'])
+        ->middleware('throttle:password-reset');
 
     // Lien ouvert depuis une boîte mail : pas de jeton, c'est la signature
     // qui authentifie. Répond par une redirection vers l'application.
