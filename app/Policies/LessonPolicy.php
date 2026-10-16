@@ -5,51 +5,42 @@ namespace App\Policies;
 use App\Models\Classroom;
 use App\Models\Lesson;
 use App\Models\User;
+use App\Policies\Concerns\DecidesAccess;
 use Illuminate\Auth\Access\Response;
 
-/**
- * Accès aux cours.
- *
- * Le prof de la classe voit et gère tout. Un membre ne voit que les cours
- * publiés. Tout autre compte, et un membre face à un brouillon, reçoit 404.
- */
 class LessonPolicy
 {
+    use DecidesAccess;
+
     public const OWNER_ONLY_MESSAGE = 'Réservé au prof de la classe.';
 
     public function create(User $user, Classroom $classroom): Response
     {
-        if ($classroom->isTaughtBy($user)) {
-            return Response::allow();
-        }
-
-        return $classroom->hasMember($user)
-            ? Response::deny(self::OWNER_ONLY_MESSAGE)
-            : Response::denyAsNotFound();
+        return $this->reserve(
+            $classroom->isTaughtBy($user),
+            fn () => $classroom->hasMember($user),
+            self::OWNER_ONLY_MESSAGE,
+        );
     }
 
     public function view(User $user, Lesson $lesson): Response
     {
-        return $this->canView($user, $lesson)
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $this->allowOrHide($this->canView($user, $lesson));
+    }
+
+    public function manage(User $user, Lesson $lesson): Response
+    {
+        return $this->reserve(
+            $lesson->classroom->isTaughtBy($user),
+            fn () => $this->canView($user, $lesson),
+            self::OWNER_ONLY_MESSAGE,
+        );
     }
 
     /**
-     * Modifier, publier, gérer les médias, supprimer.
+     * Voir le cours : son prof toujours, un membre de la classe seulement
+     * s'il est publié.
      */
-    public function manage(User $user, Lesson $lesson): Response
-    {
-        if ($lesson->classroom->isTaughtBy($user)) {
-            return Response::allow();
-        }
-
-        // Un membre qui voit le cours sait qu'il existe : 403. Sinon 404.
-        return $this->canView($user, $lesson)
-            ? Response::deny(self::OWNER_ONLY_MESSAGE)
-            : Response::denyAsNotFound();
-    }
-
     private function canView(User $user, Lesson $lesson): bool
     {
         if ($lesson->classroom->isTaughtBy($user)) {

@@ -35,7 +35,7 @@ class SeedDemoData extends Command
         $teacher = User::firstWhere('email', DemoDataSeeder::TEACHER_EMAIL);
 
         $this->newLine();
-        $this->components->twoColumnDetail('<fg=green>Prof de test</>', $teacher->first_name.' '.$teacher->name);
+        $this->components->twoColumnDetail('<fg=green>Prof de test</>', $teacher->displayName());
         $this->components->twoColumnDetail('Email', DemoDataSeeder::TEACHER_EMAIL);
         $this->components->twoColumnDetail('Mot de passe', DemoDataSeeder::TEACHER_PASSWORD);
         $this->newLine();

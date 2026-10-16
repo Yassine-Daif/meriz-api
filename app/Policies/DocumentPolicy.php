@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Document;
 use App\Models\Group;
 use App\Models\User;
+use App\Policies\Concerns\DecidesAccess;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\Gate;
 
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Gate;
  */
 class DocumentPolicy
 {
+    use DecidesAccess;
+
     public const DELETE_MESSAGE = 'Seul l\'auteur du document ou le créateur du groupe peut le supprimer.';
 
     public function viewAny(User $user): bool
@@ -31,16 +34,12 @@ class DocumentPolicy
 
     public function view(User $user, Document $document): Response
     {
-        return $this->reachable($user, $document)
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $this->allowOrHide($this->reachable($user, $document));
     }
 
     public function update(User $user, Document $document): Response
     {
-        return $this->reachable($user, $document)
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $this->allowOrHide($this->reachable($user, $document));
     }
 
     /**
@@ -53,9 +52,7 @@ class DocumentPolicy
 
         // Document personnel : son propriétaire, et personne d'autre.
         if ($group === null) {
-            return $document->user_id === $user->id
-                ? Response::allow()
-                : Response::denyAsNotFound();
+            return $this->allowOrHide($document->user_id === $user->id);
         }
 
         // Quitter le groupe, ou en être retiré, ferme l'accès : même pour qui
@@ -64,12 +61,11 @@ class DocumentPolicy
             return Response::denyAsNotFound();
         }
 
-        if ($document->user_id === $user->id || $group->isAdministeredBy($user)) {
-            return Response::allow();
-        }
-
         // Un membre du groupe sait que le document existe : refus clair.
-        return Response::deny(self::DELETE_MESSAGE);
+        return $this->allowOrDeny(
+            $document->user_id === $user->id || $group->isAdministeredBy($user),
+            self::DELETE_MESSAGE,
+        );
     }
 
     /**

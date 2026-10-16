@@ -48,7 +48,7 @@ class SubmissionResource extends AdminResource
             ->columns([
                 TextColumn::make('student.name')
                     ->label('Élève')
-                    ->formatStateUsing(fn (Submission $record) => trim(($record->student?->first_name ?? '').' '.($record->student?->name ?? '')))
+                    ->formatStateUsing(fn (Submission $record) => $record->student?->displayName() ?? '')
                     ->searchable(),
                 TextColumn::make('assignment.title')
                     ->label('Devoir')

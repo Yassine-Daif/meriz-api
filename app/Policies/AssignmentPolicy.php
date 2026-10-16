@@ -5,58 +5,40 @@ namespace App\Policies;
 use App\Models\Assignment;
 use App\Models\Classroom;
 use App\Models\User;
+use App\Policies\Concerns\DecidesAccess;
 use Illuminate\Auth\Access\Response;
 
-/**
- * Accès aux devoirs.
- *
- * Le prof de la classe voit et gère tout. Un membre ne voit que les devoirs
- * publiés, et le corrigé seulement une fois libéré. Tout autre compte, et un
- * membre face à un brouillon, reçoit un 404 : on ne révèle pas l'existence.
- */
 class AssignmentPolicy
 {
+    use DecidesAccess;
+
     public const OWNER_ONLY_MESSAGE = 'Réservé au prof de la classe.';
 
     public const TRACKING_OFF_MESSAGE = 'Le suivi en direct n\'est pas activé pour ce devoir.';
 
     public function create(User $user, Classroom $classroom): Response
     {
-        if ($classroom->isTaughtBy($user)) {
-            return Response::allow();
-        }
-
-        return $classroom->hasMember($user)
-            ? Response::deny(self::OWNER_ONLY_MESSAGE)
-            : Response::denyAsNotFound();
+        return $this->reserve(
+            $classroom->isTaughtBy($user),
+            fn () => $classroom->hasMember($user),
+            self::OWNER_ONLY_MESSAGE,
+        );
     }
 
     public function view(User $user, Assignment $assignment): Response
     {
-        return $this->canView($user, $assignment)
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $this->allowOrHide($this->canView($user, $assignment));
     }
 
-    /**
-     * Modifier, publier, libérer le corrigé, gérer l'image, supprimer.
-     */
     public function manage(User $user, Assignment $assignment): Response
     {
-        if ($assignment->classroom->isTaughtBy($user)) {
-            return Response::allow();
-        }
-
-        // Un membre qui voit le devoir sait qu'il existe : 403. Sinon 404.
-        return $this->canView($user, $assignment)
-            ? Response::deny(self::OWNER_ONLY_MESSAGE)
-            : Response::denyAsNotFound();
+        return $this->reserve(
+            $assignment->classroom->isTaughtBy($user),
+            fn () => $this->canView($user, $assignment),
+            self::OWNER_ONLY_MESSAGE,
+        );
     }
 
-    /**
-     * Le corrigé : le prof toujours, un membre seulement si le devoir est
-     * publié et le corrigé libéré.
-     */
     public function viewSolution(User $user, Assignment $assignment): bool
     {
         if ($assignment->classroom->isTaughtBy($user)) {
@@ -69,20 +51,17 @@ class AssignmentPolicy
     }
 
     /**
-     * Observer le travail en cours : le prof du devoir, et seulement si le
-     * suivi est activé. Un élève n'observe jamais personne.
+     * Observer en direct : le prof du devoir, et seulement s'il a ouvert le
+     * suivi. Le drapeau baissé est un refus explicite, pas un 404 : le prof
+     * sait très bien que son devoir existe.
      */
     public function observeLive(User $user, Assignment $assignment): Response
     {
         if ($assignment->classroom->isTaughtBy($user)) {
-            return $assignment->liveTrackingEnabled()
-                ? Response::allow()
-                : Response::deny(self::TRACKING_OFF_MESSAGE);
+            return $this->allowOrDeny($assignment->liveTrackingEnabled(), self::TRACKING_OFF_MESSAGE);
         }
 
-        return $this->canView($user, $assignment)
-            ? Response::deny(self::OWNER_ONLY_MESSAGE)
-            : Response::denyAsNotFound();
+        return $this->denyOrHide($this->canView($user, $assignment), self::OWNER_ONLY_MESSAGE);
     }
 
     public function copyBase(User $user, Assignment $assignment): Response
@@ -90,6 +69,10 @@ class AssignmentPolicy
         return $this->view($user, $assignment);
     }
 
+    /**
+     * Voir le devoir : son prof toujours, un membre de la classe seulement
+     * s'il est publié. Un brouillon n'existe pas, pour un élève.
+     */
     private function canView(User $user, Assignment $assignment): bool
     {
         if ($assignment->classroom->isTaughtBy($user)) {

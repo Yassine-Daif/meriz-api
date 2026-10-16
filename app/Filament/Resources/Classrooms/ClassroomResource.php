@@ -62,7 +62,7 @@ class ClassroomResource extends AdminResource
                     ->sortable(),
                 TextColumn::make('teacher.name')
                     ->label('Prof')
-                    ->formatStateUsing(fn (Classroom $record) => trim(($record->teacher?->first_name ?? '').' '.($record->teacher?->name ?? '')))
+                    ->formatStateUsing(fn (Classroom $record) => $record->teacher?->displayName() ?? '')
                     ->searchable(),
                 TextColumn::make('join_code')
                     ->label('Code')

@@ -62,7 +62,7 @@ class CommentResource extends AdminResource
                     ->limit(80),
                 TextColumn::make('author.name')
                     ->label('Auteur')
-                    ->formatStateUsing(fn (Comment $record) => trim(($record->author?->first_name ?? '').' '.($record->author?->name ?? '')))
+                    ->formatStateUsing(fn (Comment $record) => $record->author?->displayName() ?? '')
                     ->searchable(),
                 TextColumn::make('document.name')
                     ->label('Travail')

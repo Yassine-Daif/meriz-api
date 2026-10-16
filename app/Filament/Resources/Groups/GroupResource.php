@@ -62,7 +62,7 @@ class GroupResource extends AdminResource
                     ->sortable(),
                 TextColumn::make('creator.name')
                     ->label('Créateur')
-                    ->formatStateUsing(fn (Group $record) => trim(($record->creator?->first_name ?? '').' '.($record->creator?->name ?? '')))
+                    ->formatStateUsing(fn (Group $record) => $record->creator?->displayName() ?? '')
                     ->searchable(),
                 TextColumn::make('join_code')
                     ->label('Code')

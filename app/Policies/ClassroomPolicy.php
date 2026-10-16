@@ -4,17 +4,13 @@ namespace App\Policies;
 
 use App\Models\Classroom;
 use App\Models\User;
+use App\Policies\Concerns\DecidesAccess;
 use Illuminate\Auth\Access\Response;
 
-/**
- * Accès aux classes.
- *
- * Qui n'est ni le prof ni un membre reçoit un 404 : on ne révèle pas que la
- * classe existe. Un membre qui tente de gérer reçoit un 403, car il connaît
- * déjà la classe.
- */
 class ClassroomPolicy
 {
+    use DecidesAccess;
+
     public const TEACHER_ONLY_MESSAGE = 'Seul un compte prof peut créer une classe.';
 
     public const OWNER_ONLY_MESSAGE = 'Réservé au prof de la classe.';
@@ -28,40 +24,33 @@ class ClassroomPolicy
 
     public function create(User $user): Response
     {
-        return $user->isTeacher()
-            ? Response::allow()
-            : Response::deny(self::TEACHER_ONLY_MESSAGE);
+        return $this->allowOrDeny($user->isTeacher(), self::TEACHER_ONLY_MESSAGE);
     }
 
     public function view(User $user, Classroom $classroom): Response
     {
-        return $classroom->isTaughtBy($user) || $classroom->hasMember($user)
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $this->allowOrHide($classroom->isTaughtBy($user) || $classroom->hasMember($user));
+    }
+
+    public function manage(User $user, Classroom $classroom): Response
+    {
+        return $this->reserve(
+            $classroom->isTaughtBy($user),
+            fn () => $classroom->hasMember($user),
+            self::OWNER_ONLY_MESSAGE,
+        );
     }
 
     /**
-     * Renommer, régénérer le code, supprimer, retirer un membre.
+     * Quitter une classe : un membre peut, le prof non — il la supprime.
+     * Le refus du prof est explicite, il sait que sa classe existe.
      */
-    public function manage(User $user, Classroom $classroom): Response
-    {
-        if ($classroom->isTaughtBy($user)) {
-            return Response::allow();
-        }
-
-        return $classroom->hasMember($user)
-            ? Response::deny(self::OWNER_ONLY_MESSAGE)
-            : Response::denyAsNotFound();
-    }
-
     public function leave(User $user, Classroom $classroom): Response
     {
         if ($classroom->isTaughtBy($user)) {
             return Response::deny(self::OWNER_CANNOT_LEAVE_MESSAGE);
         }
 
-        return $classroom->hasMember($user)
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $this->allowOrHide($classroom->hasMember($user));
     }
 }

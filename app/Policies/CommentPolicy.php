@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Comment;
 use App\Models\Document;
 use App\Models\User;
+use App\Policies\Concerns\DecidesAccess;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Gate;
  */
 class CommentPolicy
 {
+    use DecidesAccess;
+
     public const DELETE_MESSAGE = 'Seul l\'auteur du commentaire ou le responsable du travail peut le supprimer.';
 
     public function viewAny(User $user, Document $document): Response
@@ -73,8 +76,6 @@ class CommentPolicy
 
     private function discussing(User $user, Document $document): Response
     {
-        return Gate::forUser($user)->allows('discuss', $document)
-            ? Response::allow()
-            : Response::denyAsNotFound();
+        return $this->allowOrHide(Gate::forUser($user)->allows('discuss', $document));
     }
 }

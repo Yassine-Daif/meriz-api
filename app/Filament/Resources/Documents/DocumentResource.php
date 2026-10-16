@@ -61,7 +61,7 @@ class DocumentResource extends AdminResource
                     ->sortable(),
                 TextColumn::make('user.name')
                     ->label('Propriétaire')
-                    ->formatStateUsing(fn (Document $record) => trim(($record->user?->first_name ?? '').' '.($record->user?->name ?? '')))
+                    ->formatStateUsing(fn (Document $record) => $record->user?->displayName() ?? '')
                     ->searchable(),
                 TextColumn::make('kind')
                     ->label('Nature')

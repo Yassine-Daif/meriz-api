@@ -98,7 +98,7 @@ class UserResource extends AdminResource
             ->columns([
                 TextColumn::make('name')
                     ->label('Nom')
-                    ->formatStateUsing(fn (User $record) => trim($record->first_name.' '.$record->name))
+                    ->formatStateUsing(fn (User $record) => $record->displayName())
                     ->searchable(['name', 'first_name'])
                     ->sortable(),
                 TextColumn::make('email')

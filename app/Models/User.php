@@ -112,6 +112,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * Le nom tel qu'on l'affiche : prénom puis nom.
+     *
+     * Les deux champs restent séparés dans les API Resources, parce que
+     * l'application en fait ce qu'elle veut. Cette méthode est pour les
+     * endroits qui ont besoin d'une seule chaîne : la zone
+     * d'administration, les commandes.
+     */
+    public function displayName(): string
+    {
+        return trim($this->first_name.' '.$this->name);
+    }
+
+    /**
      * Présentation visible par autrui : seulement si remplie et partagée.
      */
     public function sharedBio(): ?string

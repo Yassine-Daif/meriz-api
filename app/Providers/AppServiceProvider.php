@@ -2,25 +2,14 @@
 
 namespace App\Providers;
 
-use App\Models\Assignment;
-use App\Models\Classroom;
-use App\Models\Comment;
-use App\Models\Document;
-use App\Models\Group;
-use App\Models\Lesson;
-use App\Models\LessonMedium;
-use App\Models\Submission;
-use App\Models\User;
+use App\Routing\ScopedRouteBindings;
 use App\Services\AcademicEmailChecker;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -51,147 +40,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Registered::class, SendEmailVerificationNotification::class);
 
         $this->configureRateLimiting();
-        $this->configureRouteBindings();
-    }
 
-    /**
-     * {document} n'est cherché que parmi les documents de l'utilisateur
-     * connecté. Le document d'un autre lève la même exception qu'un
-     * document inexistant, donc le même 404.
-     */
-    private function configureRouteBindings(): void
-    {
-        Route::bind('document', function (string $value) {
-            $user = request()->user();
-
-            if (! $user || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(Document::class);
-            }
-
-            // Les siens, et ceux des groupes dont il est membre. La Policy
-            // décide ensuite de ce qu'il peut en faire.
-            return Document::visibleTo($user)->whereKey($value)->firstOrFail();
-        });
-
-        // {comment} n'est cherché que parmi les commentaires des travaux que
-        // l'utilisateur peut commenter : son travail, les devoirs dont il est
-        // le prof, les documents de ses groupes. Sinon, 404.
-        Route::bind('comment', function (string $value) {
-            $user = request()->user();
-
-            if (! $user || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(Comment::class);
-            }
-
-            return Comment::visibleTo($user)->whereKey($value)->firstOrFail();
-        });
-
-        // {group} n'est cherché que parmi les groupes qu'il a créés ou dont il
-        // est membre : un non-membre reçoit le même 404 qu'un groupe inexistant.
-        Route::bind('group', function (string $value) {
-            $user = request()->user();
-
-            if (! $user || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(Group::class);
-            }
-
-            return Group::visibleTo($user)->whereKey($value)->firstOrFail();
-        });
-
-        // {participant} n'est cherché que parmi les membres du groupe résolu.
-        Route::bind('participant', function (string $value, RoutingRoute $route) {
-            $group = $route->parameter('group');
-
-            if (! $group instanceof Group || ! ctype_digit($value)) {
-                throw (new ModelNotFoundException)->setModel(User::class);
-            }
-
-            return $group->members()->whereKey((int) $value)->firstOrFail();
-        });
-
-        // {classroom} n'est cherchée que parmi les classes que l'utilisateur
-        // enseigne ou dont il est membre. Sinon, même 404 qu'inexistante.
-        Route::bind('classroom', function (string $value) {
-            $user = request()->user();
-
-            if (! $user || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(Classroom::class);
-            }
-
-            return Classroom::visibleTo($user)->whereKey($value)->firstOrFail();
-        });
-
-        // {assignment} n'est cherché que parmi les devoirs visibles : tous ceux
-        // des classes que l'utilisateur enseigne, les publiés de ses classes.
-        // Un brouillon, pour un élève, donne le même 404 qu'un devoir inexistant.
-        Route::bind('assignment', function (string $value) {
-            $user = request()->user();
-
-            if (! $user || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(Assignment::class);
-            }
-
-            return Assignment::visibleTo($user)->whereKey($value)->firstOrFail();
-        });
-
-        // {lesson} n'est cherché que parmi les cours visibles : tous ceux des
-        // classes enseignées, les publiés des classes dont on est membre.
-        Route::bind('lesson', function (string $value) {
-            $user = request()->user();
-
-            if (! $user || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(Lesson::class);
-            }
-
-            return Lesson::visibleTo($user)->whereKey($value)->firstOrFail();
-        });
-
-        // {medium} n'est cherché que parmi les médias du cours déjà résolu.
-        Route::bind('medium', function (string $value, RoutingRoute $route) {
-            $lesson = $route->parameter('lesson');
-
-            if (! $lesson instanceof Lesson || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(LessonMedium::class);
-            }
-
-            return $lesson->media()->whereKey($value)->firstOrFail();
-        });
-
-        // {submission} n'est cherché que parmi les rendus visibles : les siens,
-        // et ceux des devoirs des classes que l'utilisateur enseigne. Le rendu
-        // d'un autre élève donne le même 404 qu'un rendu inexistant.
-        Route::bind('submission', function (string $value) {
-            $user = request()->user();
-
-            if (! $user || ! Str::isUlid($value)) {
-                throw (new ModelNotFoundException)->setModel(Submission::class);
-            }
-
-            return Submission::visibleTo($user)->whereKey($value)->firstOrFail();
-        });
-
-        // {student} n'est cherché que parmi les membres de la classe du devoir
-        // déjà résolu : on n'observe que ses propres élèves.
-        Route::bind('student', function (string $value, RoutingRoute $route) {
-            $assignment = $route->parameter('assignment');
-
-            if (! $assignment instanceof Assignment || ! ctype_digit($value)) {
-                throw (new ModelNotFoundException)->setModel(User::class);
-            }
-
-            return $assignment->classroom->members()->whereKey((int) $value)->firstOrFail();
-        });
-
-        // {member} n'est cherché que parmi les membres de la classe déjà résolue.
-        Route::bind('member', function (string $value, RoutingRoute $route) {
-            $classroom = $route->parameter('classroom');
-
-            if (! $classroom instanceof Classroom || ! ctype_digit($value)) {
-                throw (new ModelNotFoundException)->setModel(User::class);
-            }
-
-            return $classroom->members()->whereKey((int) $value)->firstOrFail();
-        });
+        // La première barrière du cloisonnement : voir ScopedRouteBindings.
+        (new ScopedRouteBindings)->register();
     }
 
     private function configureRateLimiting(): void
