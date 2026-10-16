@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 
-class ExampleTest extends TestCase
+class HealthTest extends TestCase
 {
     public function test_health_route_returns_ok(): void
     {

@@ -8,8 +8,10 @@ use App\Models\User;
 /**
  * Donne le rôle prof. Idempotent.
  *
- * C'est le seul endroit qui écrit ce rôle. Une future validation par un
- * administrateur appellera cette action au moment de l'approbation.
+ * C'est le seul endroit qui écrit ce rôle, et le contrôleur l'appelle une
+ * fois UserPolicy::becomeTeacher passée. Si une validation par un
+ * administrateur arrive un jour, c'est cette action qu'elle appellera au
+ * moment de l'approbation.
  */
 class GrantTeacherRole
 {

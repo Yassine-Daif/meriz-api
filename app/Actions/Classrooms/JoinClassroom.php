@@ -18,7 +18,7 @@ class JoinClassroom
 {
     public const INVALID_CODE_MESSAGE = 'Code de classe invalide.';
 
-    public const OWNER_MESSAGE = 'Vous êtes le prof de cette classe.';
+    public const OWNER_MESSAGE = 'Tu es déjà le prof de cette classe.';
 
     public const FULL_MESSAGE = 'Cette classe est complète.';
 

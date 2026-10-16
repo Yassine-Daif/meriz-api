@@ -3,7 +3,7 @@
 namespace App\Actions\Assignments;
 
 use App\Models\Assignment;
-use App\Rules\ImageContent;
+use App\Rules\UploadedMedia;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -19,8 +19,8 @@ class ManageAssignmentImage
 {
     public function store(Assignment $assignment, UploadedFile $file): Assignment
     {
-        // Type relu sur le contenu, déjà validé par ImageContent.
-        $mime = ImageContent::detectMime($file->getRealPath());
+        // Type relu sur le contenu, déjà validé par UploadedMedia.
+        $mime = UploadedMedia::detectMime($file->getRealPath());
         $extension = config('assignments.image_mimes')[$mime];
         $previous = $assignment->image_path;
 

@@ -1,2 +1,9 @@
+# Meriz API : un serveur d'API, rien à explorer ici.
+#
+# /admin est la zone d'administration, /api l'API elle-même : les deux sont
+# protégées par l'authentification, mais elles n'ont aucune raison de figurer
+# dans un moteur de recherche.
+
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /api
