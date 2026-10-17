@@ -84,7 +84,13 @@ return [
                     'scheme' => env('REVERB_SCHEME', 'https'),
                     'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
                 ],
-                // En production, on restreint aux origines de l'application.
+                // Des hôtes, pas des URL : Reverb extrait l'hôte de l'entête
+                // Origin (parse_url, PHP_URL_HOST) avant de comparer, donc
+                // « https://app.exemple.fr » ne correspond jamais à rien.
+                // On écrit « app.exemple.fr ». Rien à voir avec
+                // config/cors.php, qui compare des origines complètes.
+                //
+                // En production, on restreint aux hôtes de l'application.
                 // '*' reste le défaut pour le développement, où le front
                 // tourne sur localhost avec un port qui change.
                 'allowed_origins' => array_filter(array_map(

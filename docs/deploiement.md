@@ -23,11 +23,13 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 
 ## Accès depuis l'application
 
-- [ ] **`CORS_ALLOWED_ORIGINS`** : le domaine web de production et les
-      origines Tauri (`tauri://localhost`, `http://tauri.localhost`,
-      `https://tauri.localhost`), séparés par des virgules. Sans ça,
-      l'application ne peut pas appeler l'API depuis un navigateur ni depuis
-      la webview.
+- [ ] **`CORS_ALLOWED_ORIGINS`** : l'adresse de l'application et les origines
+      Tauri (`tauri://localhost`, `http://tauri.localhost`,
+      `https://tauri.localhost`), séparées par des virgules. Des origines
+      complètes, avec le schéma. Sans ça, l'application ne peut pas appeler
+      l'API depuis un navigateur ni depuis la webview.
+      Seule l'adresse de l'application a besoin d'y figurer : un site vitrine
+      qui ne fait que renvoyer vers elle n'appelle pas l'API.
 - [ ] Vérifier que `supports_credentials` reste à `false` : l'authentification
       est par jeton, jamais par cookie.
 
@@ -43,8 +45,14 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 
 - [ ] **`REVERB_APP_KEY`, `REVERB_APP_SECRET`, `REVERB_APP_ID` neufs**, jamais
       ceux du développement.
-- [ ] **`REVERB_ALLOWED_ORIGINS`** restreint aux domaines de l'application :
+- [ ] **`REVERB_ALLOWED_ORIGINS`** restreint aux **hôtes** de l'application :
       la valeur par défaut est `*`, qui convient en développement seulement.
+      Des hôtes seuls, `app.exemple.fr`, et non des URL : Reverb extrait
+      l'hôte de l'entête `Origin` avant de comparer, donc une entrée écrite
+      `https://app.exemple.fr` ne correspond à rien et **toute** connexion
+      est refusée. Ajouter `localhost` et `tauri.localhost` si le logiciel de
+      bureau doit avoir le direct : ce sont les hôtes de la webview Tauri.
+      C'est l'inverse de `CORS_ALLOWED_ORIGINS`, qui veut le schéma.
 - [ ] Le service Reverb sous un gestionnaire de processus, et exposé en `wss`
       derrière le serveur web. Procédure détaillée dans
       [websocket.md](websocket.md).
@@ -54,6 +62,15 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 - [ ] **HTTPS obligatoire**, redirection 80 → 443, certificat renouvelé
       automatiquement. Le jeton voyage dans l'entête `Authorization` : en clair,
       il est lisible sur le réseau.
+- [ ] **L'IP du client et le schéma, rien à régler en PHP-FPM.** Derrière
+      nginx en FastCGI, `fastcgi.conf` passe `REMOTE_ADDR` (l'IP réelle du
+      visiteur) et `HTTPS on` : Laravel voit la bonne IP et le bon schéma sans
+      `trustProxies`. Ce n'est donc pas un oubli, et l'ajouter serait du
+      réglage mort. Ça change le jour où un vrai proxy se met devant, un CDN
+      ou un répartiteur de charge : il faudra alors déclarer ses plages dans
+      `trustProxies`, sinon les limiteurs par IP compteront le proxy et non le
+      visiteur. Le vérifier par l'expérience, deux IP différentes qui ne
+      partagent pas le même compteur, et non en le supposant.
 - [ ] **Base de production** MySQL ou PostgreSQL, avec un compte dédié aux seuls
       droits nécessaires. Pas de SQLite en production.
 - [ ] **`storage/` et `bootstrap/cache/`** accessibles en écriture au seul

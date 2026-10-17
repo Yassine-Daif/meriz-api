@@ -104,11 +104,19 @@ REVERB_PORT=443
 REVERB_SCHEME=https
 REVERB_SERVER_HOST=127.0.0.1         # le service n'écoute qu'en local
 REVERB_SERVER_PORT=8080
+REVERB_ALLOWED_ORIGINS=app.exemple   # des hôtes, pas des URL
 ```
 
 `REVERB_HOST` est ce que le client utilise, `REVERB_SERVER_HOST` ce que le
 service écoute. Le service ne doit **jamais** écouter sur `0.0.0.0` : il
 n'est joignable que par nginx, sur la machine.
+
+`REVERB_ALLOWED_ORIGINS` prend des **hôtes seuls**. Reverb extrait l'hôte de
+l'entête `Origin` avant de comparer, donc `https://app.exemple` ne correspond
+jamais à rien et toutes les connexions sont refusées avec `InvalidOrigin`.
+Pour que le logiciel de bureau ait le direct, ajouter les hôtes de la webview
+Tauri : `localhost` et `tauri.localhost`. C'est l'inverse de
+`CORS_ALLOWED_ORIGINS`, qui veut des origines complètes avec leur schéma.
 
 ### 2. Pare-feu
 
@@ -152,7 +160,15 @@ sudo systemctl status meriz-reverb
 ### 4. Exposition chiffrée, par nginx
 
 Dans le bloc `server` du domaine, à côté de la configuration existante de
-l'API, et **sous le même certificat TLS** :
+l'API, et **sous le même certificat TLS**.
+
+Les deux chemins sont nécessaires, et aucun n'est décoratif :
+
+- `/app/{clé}` est le websocket lui-même, celui que le client ouvre ;
+- `/apps/{id}/events` est l'API par laquelle **le serveur** publie ses
+  évènements. Il l'appelle sur `REVERB_HOST`, donc par son propre domaine
+  public : la diffusion repasse par nginx. Sans ce second chemin, tout
+  semble marcher et l'observation reste muette.
 
 ```nginx
 location ~ ^/(app|apps)/ {
