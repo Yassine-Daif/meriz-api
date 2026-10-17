@@ -59,7 +59,13 @@ class UploadedMedia implements ValidationRule
             return null;
         }
 
-        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($path);
+        // Les mises en garde sont étouffées, comme pour getimagesize plus
+        // haut, et pour la même raison : Laravel transforme une mise en
+        // garde PHP en exception, donc un fichier que finfo n'arrive pas à
+        // ouvrir ferait répondre 500 au lieu de 422. Un fichier illisible
+        // n'est pas un média autorisé, c'est tout ce qu'on a besoin de
+        // savoir : null remonte, et l'appelant refuse.
+        $mime = @(new finfo(FILEINFO_MIME_TYPE))->file($path);
 
         return $mime === false ? null : $mime;
     }
