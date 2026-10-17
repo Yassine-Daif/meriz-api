@@ -84,7 +84,13 @@ return [
                     'scheme' => env('REVERB_SCHEME', 'https'),
                     'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
                 ],
-                'allowed_origins' => ['*'],
+                // En production, on restreint aux origines de l'application.
+                // '*' reste le défaut pour le développement, où le front
+                // tourne sur localhost avec un port qui change.
+                'allowed_origins' => array_filter(array_map(
+                    'trim',
+                    explode(',', (string) env('REVERB_ALLOWED_ORIGINS', '*')),
+                )),
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_connections' => env('REVERB_APP_MAX_CONNECTIONS'),

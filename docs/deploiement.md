@@ -23,10 +23,11 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 
 ## Accès depuis l'application
 
-- [ ] **`config/cors.php`** : décommenter le domaine web de production et les
+- [ ] **`CORS_ALLOWED_ORIGINS`** : le domaine web de production et les
       origines Tauri (`tauri://localhost`, `http://tauri.localhost`,
-      `https://tauri.localhost`). Sans ça, l'application ne peut pas appeler
-      l'API depuis un navigateur ni depuis la webview.
+      `https://tauri.localhost`), séparés par des virgules. Sans ça,
+      l'application ne peut pas appeler l'API depuis un navigateur ni depuis
+      la webview.
 - [ ] Vérifier que `supports_credentials` reste à `false` : l'authentification
       est par jeton, jamais par cookie.
 
@@ -42,8 +43,8 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 
 - [ ] **`REVERB_APP_KEY`, `REVERB_APP_SECRET`, `REVERB_APP_ID` neufs**, jamais
       ceux du développement.
-- [ ] **`allowed_origins` restreint** dans `config/reverb.php` : il est à `['*']`
-      par défaut.
+- [ ] **`REVERB_ALLOWED_ORIGINS`** restreint aux domaines de l'application :
+      la valeur par défaut est `*`, qui convient en développement seulement.
 - [ ] Le service Reverb sous un gestionnaire de processus, et exposé en `wss`
       derrière le serveur web. Procédure détaillée dans
       [websocket.md](websocket.md).
