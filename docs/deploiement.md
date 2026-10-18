@@ -89,10 +89,13 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 - [ ] `composer install --no-dev --optimize-autoloader`
 - [ ] `php artisan migrate --force`
 - [ ] `php artisan config:cache route:cache event:cache`
+- [ ] **`sudo systemctl reload php8.5-fpm`**, à chaque déploiement. Depuis la
+      1.0.0, `opcache.validate_timestamps` est à 0 : sans ce rechargement,
+      PHP continue de servir l'ancien code.
 - [ ] **`php artisan filament:assets`** et **`php artisan filament:optimize`**,
       après chaque déploiement. Sans ça, la zone admin s'affiche sans style.
-- [ ] **Planificateur actif** : `schedule:run` chaque minute par cron. C'est lui
-      qui purge les jetons expirés.
+- [x] **Planificateur actif** : `schedule:run` chaque minute par cron. C'est lui
+      qui purge les jetons expirés. En place : `/etc/cron.d/meriz-planificateur`.
 - [ ] `php artisan about` relu une fois en ligne : debug coupé, caches en place,
       bon pilote de base.
 
@@ -110,10 +113,23 @@ d'emails dans [email.md](email.md), de websocket dans [websocket.md](websocket.m
 - [ ] Facultatif, mais recommandé : restreindre `/admin` par IP au niveau du
       serveur web, en plus du contrôle applicatif.
 
+## Le serveur web
+
+- [x] Les trois blocs nginx sont copiés dans le dépôt, sous
+      [nginx/](nginx/), pour survivre à la perte du serveur. Y figurent le
+      repli SPA de l'application et l'emplacement du défi Let's Encrypt,
+      deux choses faciles à perdre et coûteuses à retrouver.
+- [x] `app.meriz.fr` sert un `robots.txt` qui interdit l'indexation :
+      l'application est un outil, pas du contenu.
+
 ## Après la mise en ligne
 
-- [ ] **Sauvegardes** de la base et de `storage/app/private`, et une
+- [x] **Sauvegardes** de la base et de `storage/app/private`, et une
       restauration réellement testée. Ce sont des travaux d'élèves.
+      En place depuis la 1.0.0 : `/usr/local/bin/meriz-sauvegarde`, chaque
+      nuit, 14 jours gardés. Restauration éprouvée le 17 octobre 2026.
+      Voir [sauvegardes.md](sauvegardes.md). **Reste à faire** : une copie
+      hors du serveur.
 - [ ] **`composer audit`** dans la chaîne de déploiement, pour être prévenu
       d'une alerte sur une dépendance.
 - [ ] Surveillance des 429 et des 500 : un pic de 429 sur la connexion ou sur
