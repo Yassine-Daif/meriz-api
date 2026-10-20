@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  */
 class InscriptionsChartWidget extends ChartWidget
 {
+    protected static ?int $sort = 10;
+
     protected ?string $heading = 'Nouvelles inscriptions par mois';
 
     protected ?string $maxHeight = '260px';

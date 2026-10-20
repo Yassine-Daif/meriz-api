@@ -14,6 +14,8 @@ use Illuminate\Support\Carbon;
  */
 class RendusChartWidget extends ChartWidget
 {
+    protected static ?int $sort = 20;
+
     protected ?string $heading = 'Rendus déposés par semaine';
 
     protected ?string $maxHeight = '260px';
