@@ -16,14 +16,14 @@ class MaxBytes implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (is_string($value) && strlen($value) > $this->bytes) {
-            $fail('Le contenu dépasse la taille maximale autorisée ('.$this->humanSize().').');
+            $fail(__('Le contenu dépasse la taille maximale autorisée (:size).', ['size' => $this->humanSize()]));
         }
     }
 
     private function humanSize(): string
     {
         return $this->bytes >= 1024 * 1024
-            ? round($this->bytes / (1024 * 1024), 1).' Mo'
-            : round($this->bytes / 1024, 1).' Ko';
+            ? round($this->bytes / (1024 * 1024), 1).' '.__('Mo')
+            : round($this->bytes / 1024, 1).' '.__('Ko');
     }
 }

@@ -168,7 +168,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyEmailAddress);
+        $this->notify((new VerifyEmailAddress)->locale(app()->getLocale()));
     }
 
     /**
@@ -177,7 +177,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new ResetPasswordLink($token));
+        $this->notify((new ResetPasswordLink($token))->locale(app()->getLocale()));
     }
 
     public function isTeacher(): bool

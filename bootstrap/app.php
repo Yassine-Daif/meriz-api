@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ApiErrorMessages;
+use App\Http\Middleware\RequestLanguage;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['auth:sanctum', 'throttle:broadcasting']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(RequestLanguage::class);
         // Pas de page de connexion dans l'API : un invité reçoit un 401 JSON,
         // jamais une redirection. Le panneau admin a son propre garde, qui
         // renvoie vers sa page de connexion.
