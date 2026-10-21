@@ -188,6 +188,8 @@ class ExportAccountData
                 'id' => $comment->id,
                 'document_id' => $comment->document_id,
                 'body' => $comment->body,
+                'parent_id' => $comment->parent_id,
+                'drawing' => $comment->drawing,
                 'position' => $comment->hasPosition()
                     ? ['x' => $comment->position_x, 'y' => $comment->position_y]
                     : null,

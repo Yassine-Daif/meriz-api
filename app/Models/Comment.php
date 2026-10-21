@@ -30,6 +30,7 @@ class Comment extends Model
         return [
             'position_x' => 'float',
             'position_y' => 'float',
+            'drawing' => 'array',
             'resolved_at' => 'datetime',
         ];
     }

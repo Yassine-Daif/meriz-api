@@ -26,6 +26,9 @@ class CommentResource extends JsonResource
             'id' => $this->id,
             'document_id' => $this->document_id,
             'body' => $this->body,
+            'parent_id' => $this->parent_id,
+            'drawing' => $this->drawing,
+            'can_delete' => $request->user()?->can('delete', $this->resource) ?? false,
             // Bulle posée, ou commentaire général si null.
             'position' => $this->hasPosition()
                 ? ['x' => $this->position_x, 'y' => $this->position_y]

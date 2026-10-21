@@ -20,7 +20,7 @@ class CreateComment
     public const QUOTA_MESSAGE = 'Nombre maximal de commentaires atteint pour ce travail.';
 
     /**
-     * @param  array{body: string, position_x?: float|null, position_y?: float|null}  $data
+     * @param  array{body: string, position_x?: float|null, position_y?: float|null, parent_id?: string|null, drawing?: array|null}  $data
      *
      * @throws ValidationException
      */
@@ -33,6 +33,16 @@ class CreateComment
                 throw ValidationException::withMessages(['body' => self::QUOTA_MESSAGE]);
             }
 
+            if (! empty($data['parent_id'])) {
+                $parent = $document->comments()->whereKey($data['parent_id'])
+                    ->whereNull('parent_id')->whereNull('drawing')->lockForUpdate()->first();
+                if ($parent === null) {
+                    throw ValidationException::withMessages(['parent_id' => 'Cette discussion est indisponible.']);
+                }
+                // Une nouvelle réponse remet la discussion parmi celles à traiter.
+                $parent->forceFill(['resolved_at' => null, 'resolved_by' => null])->save();
+            }
+
             $comment = new Comment(['body' => $data['body']]);
 
             $comment->forceFill([
@@ -40,6 +50,11 @@ class CreateComment
                 'user_id' => $author->id,
                 'position_x' => $data['position_x'] ?? null,
                 'position_y' => $data['position_y'] ?? null,
+                'parent_id' => $data['parent_id'] ?? null,
+                'drawing' => isset($data['drawing']) ? array_map(
+                    fn (array $point) => ['x' => (float) $point['x'], 'y' => (float) $point['y']],
+                    $data['drawing'],
+                ) : null,
             ])->save();
 
             return $comment;

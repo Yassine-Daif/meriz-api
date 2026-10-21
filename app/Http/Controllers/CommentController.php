@@ -30,6 +30,11 @@ class CommentController extends Controller
             ->orderBy('id')
             ->get();
 
+        $document->loadMissing(['assignment.classroom', 'group']);
+        foreach ($comments as $comment) {
+            $comment->setRelation('document', $document);
+        }
+
         return CommentResource::collection($comments);
     }
 
