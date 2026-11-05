@@ -16,7 +16,7 @@ il ne rend pas de page — à une exception près, la zone d'administration.
 
 | | |
 |---|---|
-| Framework | Laravel 13, PHP 8.3 ou plus |
+| Framework | Laravel 13, PHP 8.4.1 ou plus |
 | Authentification | Laravel Sanctum, jetons Bearer, jamais de cookie de session pour l'API |
 | Temps réel | Laravel Reverb, pour l'observation et la co-édition |
 | Administration | Filament, sur `/admin`, réservée à un compte administrateur |
@@ -24,7 +24,7 @@ il ne rend pas de page — à une exception près, la zone d'administration.
 
 ## Démarrer en développement
 
-**Prérequis** : PHP 8.3 ou plus avec les extensions `intl` et `zip` activées, et
+**Prérequis** : PHP 8.4.1 ou plus avec les extensions `intl` et `zip` activées, et
 Composer. L'extension `intl` est exigée par Filament, `zip` par Composer :
 elles ne sont pas toujours actives sur une installation neuve, vérifie avec
 `php -m`.

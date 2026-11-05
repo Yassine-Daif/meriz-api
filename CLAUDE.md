@@ -17,7 +17,7 @@ Le serveur gère les comptes, la synchronisation des documents dans le cloud, le
 ## Stack technique
 
 - Laravel 13, la version actuelle
-- PHP 8.3 ou plus, avec Composer
+- PHP 8.4.1 ou plus, avec Composer
 - Laravel Sanctum pour l'authentification
 - Base de données, SQLite en développement, un simple fichier, et MySQL ou PostgreSQL en production, plus tard
 

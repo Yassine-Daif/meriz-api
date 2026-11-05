@@ -22,9 +22,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 8.3 est le plancher déclaré dans composer.json, 8.5 la version sur
+        # 8.4 est le plancher des dépendances verrouillées, 8.5 la version sur
         # laquelle le projet est développé. Si le plancher casse, on le saura.
-        php: ['8.3', '8.5']
+        php: ['8.4', '8.5']
 
     steps:
       - uses: actions/checkout@v4
