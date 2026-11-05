@@ -84,5 +84,7 @@
     "La couleur doit être au format hexadécimal, par exemple #1e1b4b.": "The colour must use hexadecimal format, for example #1e1b4b.",
     "Le contenu dépasse la taille maximale autorisée (:size).": "The content exceeds the maximum allowed size (:size).",
     "Mo": "MB",
-    "Ko": "KB"
+    "Ko": "KB",
+    "Le classement a changé. Actualisez la liste avant de déplacer cet espace.": "The collection membership has changed. Refresh the list before moving this workspace.",
+    "Ce regroupement contient déjà 200 espaces.": "This collection already contains 200 workspaces."
 }

@@ -54,7 +54,7 @@ class ExportAccountData
             'lessons' => $this->lessons($taughtIds),
             'workspace_collections' => WorkspaceCollection::visibleTo($user)->orderBy('id')->get()->map(fn ($collection) => [
                 'id' => $collection->id, 'name' => $collection->name, 'kind' => $collection->kind,
-                'year_start' => $collection->year_start, 'archived' => $collection->archived,
+                'year_start' => $collection->year_start, 'period_kind' => $collection->period_kind, 'archived' => $collection->archived,
                 'item_ids' => $collection->kind === 'classrooms'
                     ? $collection->classrooms()->where('teacher_id', $user->id)->pluck('classrooms.id')->all()
                     : $collection->groups()->visibleTo($user)->pluck('work_groups.id')->all(),

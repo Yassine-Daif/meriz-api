@@ -115,6 +115,39 @@ groupe, sans affecter l'autosauvegarde. Les diffusions, préparations d'année e
 invitations ont leurs propres budgets nommés pour éviter les conflits de
 compteurs entre opérations.
 
+## Organisation des classes et groupes, interface 1.7.1
+
+Les pages ouvrent la liste des espaces existants. Créer, rejoindre et gérer les
+regroupements sont séparés par des onglets ; la bibliothèque pédagogique dispose
+aussi de son onglet pour les professeurs. Le gestionnaire affiche les
+regroupements vides et permet les déplacements par glisser-déposer ou par une
+fenêtre accessible au clavier et sur mobile. La dernière opération peut être
+annulée ; les notifications flottantes ne déplacent pas la mise en page.
+
+Un regroupement est créé actif. L'archivage est une action séparée, confirmée et
+réversible ; les espaces archivés sont signalés dans la liste et restent
+accessibles. Supprimer un regroupement ne supprime pas ses espaces.
+
+La période facultative distingue l'année scolaire (2026-2027) et l'année civile
+(2026). Le champ `period_kind` vaut `academic` ou `calendar`, avec `academic`
+par défaut pour préserver les anciens regroupements. Les groupes ne reçoivent
+pas de période imposée à la création. La préparation d'une nouvelle année garde
+le type de période de la source. Les dates ne sont pas déduites de la langue.
+
+`POST /api/collections/move` reçoit `kind`, `item_id`, `from_id` et `to_id`
+(identifiants de regroupement éventuellement nuls). L'opération verrouille le
+compte et modifie les deux liens dans une transaction. Elle vérifie la propriété
+des regroupements, le droit sur l'espace et la capacité du destinataire. Elle
+ne touche ni aux membres, ni aux documents, ni au direct. Les autres classements
+restent conservés ; une source nulle ajoute un classement, un destinataire nul
+retire uniquement celui de la source. Une répétition déjà appliquée est sans
+effet.
+
+`PATCH /api/collections/{id}/settings` ne change que les paramètres ; les champs
+de membres y sont interdits. Cela évite qu'un formulaire ouvert avant un
+déplacement ne rétablisse d'anciennes appartenances lors d'un renommage. Les
+anciennes routes restent compatibles avec les clients précédents.
+
 ## Vérification des professeurs
 
 La propriété d'une boîte email ne prouve pas un statut enseignant. Le domaine

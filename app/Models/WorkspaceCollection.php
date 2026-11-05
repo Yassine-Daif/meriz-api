@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /** Classement personnel : ne change jamais les droits des classes ou groupes. */
-#[Fillable(['name', 'year_start', 'archived'])]
+#[Fillable(['name', 'year_start', 'archived', 'period_kind'])]
 class WorkspaceCollection extends Model
 {
     use HasUlids;

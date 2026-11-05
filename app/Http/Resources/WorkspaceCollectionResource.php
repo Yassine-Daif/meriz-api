@@ -19,6 +19,7 @@ class WorkspaceCollectionResource extends JsonResource
             'name' => $this->name,
             'kind' => $this->kind,
             'year_start' => $this->year_start,
+            'period_kind' => $this->period_kind ?? 'academic',
             'archived' => $this->archived,
             'item_ids' => $ids,
         ];

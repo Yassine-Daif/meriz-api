@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
+use App\Http\Controllers\CollectionMoveController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EducationVerificationController;
@@ -71,7 +72,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/teaching-resources/{teachingResource}/distribution', [TeachingResourceController::class, 'distribute'])->middleware('throttle:library-distribution');
     Route::delete('/teaching-resources/{teachingResource}', [TeachingResourceController::class, 'destroy'])->middleware('throttle:library-capture');
     Route::post('/collections', [WorkspaceCollectionController::class, 'store'])->middleware('throttle:collection-mutation');
+    Route::post('/collections/move', [CollectionMoveController::class, 'store'])->middleware('throttle:collection-mutation');
     Route::patch('/collections/{workspaceCollection}', [WorkspaceCollectionController::class, 'update'])->middleware('throttle:collection-mutation');
+    Route::patch('/collections/{workspaceCollection}/settings', [WorkspaceCollectionController::class, 'settings'])->middleware('throttle:collection-mutation');
     Route::delete('/collections/{workspaceCollection}', [WorkspaceCollectionController::class, 'destroy'])->middleware('throttle:collection-mutation');
     Route::post('/collections/{workspaceCollection}/academic-year', [PrepareAcademicYearController::class, 'store'])->middleware('throttle:academic-year');
     Route::prefix('me')->group(function () {

@@ -25,6 +25,7 @@ class SaveCollectionRequest extends FormRequest
             'name' => ['required', 'string', 'max:100'],
             'kind' => ['required', 'string', Rule::in(['classrooms', 'groups'])],
             'year_start' => ['nullable', 'integer', 'between:1900,2200'],
+            'period_kind' => ['sometimes', 'required', Rule::in(['academic', 'calendar'])],
             'archived' => ['required', 'boolean'],
             'item_ids' => ['present', 'array', 'list', 'max:200'],
             'item_ids.*' => ['required', 'ulid', 'distinct'],

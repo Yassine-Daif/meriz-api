@@ -37,7 +37,7 @@ class PrepareAcademicYearController extends Controller
                     throw ValidationException::withMessages(['name' => 'Nombre maximal de regroupements atteint.']);
                 }
                 $collection = new WorkspaceCollection($request->safe()->only(['name', 'year_start']));
-                $collection->forceFill(['user_id' => $request->user()->id, 'kind' => 'classrooms', 'archived' => false, 'preparation_key' => $request->validated('request_key'), 'preparation_fingerprint' => $fingerprint])->save();
+                $collection->forceFill(['user_id' => $request->user()->id, 'kind' => 'classrooms', 'period_kind' => $workspaceCollection->period_kind, 'archived' => false, 'preparation_key' => $request->validated('request_key'), 'preparation_fingerprint' => $fingerprint])->save();
                 foreach ($workspaceCollection->classrooms()->where('teacher_id', $request->user()->id)->orderBy('id')->get() as $oldClass) {
                     $newClassIds[] = $create->handle($request->user(), $oldClass->name)->id;
                 }
