@@ -51,6 +51,7 @@ class AssignmentResource extends JsonResource
             // l'élève sait que le prof peut suivre son travail.
             'live_tracking' => $this->liveTrackingEnabled(),
             'live_tracking_enabled_at' => $this->live_tracking_enabled_at?->toIso8601String(),
+            'interface_settings' => $this->when($this->detailed, fn () => $this->interface_settings),
             'instructions' => $this->when($this->detailed, fn () => $this->instructions),
             'base_content' => $this->when($this->detailed, fn () => $this->base_content),
             'solution_content' => $this->when(

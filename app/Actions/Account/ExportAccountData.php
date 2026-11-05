@@ -7,7 +7,9 @@ use App\Models\Comment;
 use App\Models\Document;
 use App\Models\Lesson;
 use App\Models\LessonMedium;
+use App\Models\TeachingResource;
 use App\Models\User;
+use App\Models\WorkspaceCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -50,6 +52,14 @@ class ExportAccountData
             'comments' => $this->comments($user),
             'assignments' => $this->assignments($taughtIds),
             'lessons' => $this->lessons($taughtIds),
+            'workspace_collections' => WorkspaceCollection::visibleTo($user)->orderBy('id')->get()->map(fn ($collection) => [
+                'id' => $collection->id, 'name' => $collection->name, 'kind' => $collection->kind,
+                'year_start' => $collection->year_start, 'archived' => $collection->archived,
+                'item_ids' => $collection->kind === 'classrooms'
+                    ? $collection->classrooms()->where('teacher_id', $user->id)->pluck('classrooms.id')->all()
+                    : $collection->groups()->visibleTo($user)->pluck('work_groups.id')->all(),
+            ])->all(),
+            'teaching_library' => $this->teachingLibrary($user),
         ];
     }
 
@@ -64,6 +74,11 @@ class ExportAccountData
             'first_name' => $user->first_name,
             'email' => $user->email,
             'role' => $user->role->value,
+            'interface_mode' => $user->interface_mode?->value,
+            'usage_category' => $user->usage_category?->value,
+            'teacher_verified_at' => $user->teacher_verified_at?->toIso8601String(),
+            'teacher_verification_source' => $user->teacher_verification_source,
+            'education_institution_id' => $user->education_institution_id,
             'is_academic' => $user->is_academic,
             'bio' => $user->bio,
             'bio_shared' => $user->bio_shared,
@@ -225,6 +240,7 @@ class ExportAccountData
                 'due_at' => $assignment->due_at?->toIso8601String(),
                 'base_content' => $assignment->base_content,
                 'solution_content' => $assignment->solution_content,
+                'interface_settings' => $assignment->interface_settings,
                 'published_at' => $assignment->published_at?->toIso8601String(),
                 'solution_released_at' => $assignment->solution_released_at?->toIso8601String(),
                 'image' => $assignment->image_path === null ? null : [
@@ -242,6 +258,23 @@ class ExportAccountData
      * @param  Collection<int, string>  $classroomIds
      * @return array<int, array<string, mixed>>
      */
+    private function teachingLibrary(User $user): array
+    {
+        return TeachingResource::visibleTo($user)->orderBy('id')->get()->map(function (TeachingResource $resource) {
+            $payload = $resource->payload;
+            foreach ($payload['media'] ?? [] as $index => $medium) {
+                unset($payload['media'][$index]['path']);
+                $payload['media'][$index]['url'] = '/api/teaching-resources/'.$resource->id.'/media/'.$index;
+            }
+            if (isset($payload['image'])) {
+                unset($payload['image']['path']);
+                $payload['image']['url'] = '/api/teaching-resources/'.$resource->id.'/media/image';
+            }
+
+            return ['id' => $resource->id, 'kind' => $resource->kind, 'title' => $resource->title, 'version' => $resource->version, 'payload' => $payload];
+        })->all();
+    }
+
     private function lessons(Collection $classroomIds): array
     {
         if ($classroomIds->isEmpty()) {

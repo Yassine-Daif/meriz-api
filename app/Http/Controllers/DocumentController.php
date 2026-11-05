@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Documents\CreateDocument;
+use App\Actions\Documents\UpdateDocument;
 use App\Events\WorkUpdated;
 use App\Http\Requests\Documents\IndexDocumentsRequest;
 use App\Http\Requests\Documents\StoreDocumentRequest;
@@ -55,11 +56,11 @@ class DocumentController extends Controller
         return new DocumentResource($document);
     }
 
-    public function update(UpdateDocumentRequest $request, Document $document): DocumentResource
+    public function update(UpdateDocumentRequest $request, Document $document, UpdateDocument $update): DocumentResource
     {
         Gate::authorize('update', $document);
 
-        $document->update($request->validated());
+        $update->handle($document, $request->validated());
 
         // Travail rattaché à un devoir : on annonce la mise à jour. C'est
         // WorkUpdated qui décide de partir ou non, selon le drapeau de suivi.

@@ -10,6 +10,7 @@ use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -23,6 +24,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
+use Illuminate\Validation\Rule;
 
 /**
  * Les comptes.
@@ -69,11 +72,12 @@ class UserResource extends AdminResource
                 ->label('Adresse email')
                 ->disabled()
                 ->helperText("L'adresse ne se change pas depuis l'administration : elle sert à se connecter et elle est vérifiée."),
-            TextInput::make('role')
+            Select::make('role')
                 ->label('Rôle')
-                ->disabled()
-                ->formatStateUsing(fn (?UserRole $state) => $state === UserRole::Teacher ? 'Prof' : 'Élève')
-                ->helperText('Le mode prof s\'active par l\'application, sur une adresse scolaire vérifiée.'),
+                ->options(['student' => 'Élève', 'teacher' => 'Prof'])
+                ->required()
+                ->rules([Rule::enum(UserRole::class)])
+                ->helperText('Correction administrative du rôle. Ne donne pas accès à l\'administration.'),
             Toggle::make('is_academic')
                 ->label('Adresse scolaire reconnue'),
             Toggle::make('is_admin')
@@ -99,6 +103,8 @@ class UserResource extends AdminResource
                 TextColumn::make('name')
                     ->label('Nom')
                     ->formatStateUsing(fn (User $record) => $record->displayName())
+                    ->limit(40)
+                    ->tooltip(fn (User $record) => $record->displayName())
                     ->searchable(['name', 'first_name'])
                     ->sortable(),
                 TextColumn::make('email')
@@ -145,6 +151,14 @@ class UserResource extends AdminResource
             ])
             ->recordActions([
                 EditAction::make()
+                    ->using(function (User $record, array $data): User {
+                        $record->fill(Arr::except($data, ['role', 'is_academic']));
+                        // Ces champs restent protégés de l'assignation par l'API.
+                        $record->forceFill(Arr::only($data, ['role', 'is_academic']));
+                        $record->save();
+
+                        return $record;
+                    })
                     ->hidden(fn (User $record) => $record->isAnonymized()),
                 self::deleteAccountAction(),
             ]);

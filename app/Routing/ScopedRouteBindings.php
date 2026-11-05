@@ -10,7 +10,9 @@ use App\Models\Group;
 use App\Models\Lesson;
 use App\Models\LessonMedium;
 use App\Models\Submission;
+use App\Models\TeachingResource;
 use App\Models\User;
+use App\Models\WorkspaceCollection;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -66,6 +68,8 @@ class ScopedRouteBindings
         // Famille 1. Chaque modèle porte sa propre règle de visibilité dans
         // sa portée visibleTo, et c'est là qu'elle se lit.
         $this->visibleToUser('document', Document::class);
+        $this->visibleToUser('workspaceCollection', WorkspaceCollection::class);
+        $this->visibleToUser('teachingResource', TeachingResource::class);
         $this->visibleToUser('comment', Comment::class);
         $this->visibleToUser('group', Group::class);
         $this->visibleToUser('classroom', Classroom::class);

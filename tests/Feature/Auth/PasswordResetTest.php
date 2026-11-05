@@ -280,13 +280,15 @@ class PasswordResetTest extends TestCase
         $this->assertNotNull($alice->fresh()->email_verified_at);
     }
 
-    public function test_an_academic_account_can_become_teacher_after_resetting(): void
+    public function test_an_attested_teacher_can_activate_after_resetting_the_password(): void
     {
         // Les deux phases reliées : l'adresse scolaire non vérifiée bloquait
         // le mode prof, la réinitialisation vient de la vérifier.
         $alice = User::factory()->academic()->unverified()->create([
             'email' => 'claire@ac-lyon.fr',
             'password' => self::OLD,
+            'teacher_verified_at' => now(),
+            'teacher_verification_source' => 'institution_referent',
         ]);
 
         $this->postJson('/api/auth/password/reset', [

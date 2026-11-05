@@ -42,7 +42,7 @@ class MeTest extends TestCase
             ->assertJsonPath('data.role', 'student');
 
         $this->assertEqualsCanonicalizing(
-            ['id', 'name', 'first_name', 'email', 'role', 'is_academic', 'bio', 'bio_shared', 'contact', 'contact_shared', 'avatar_bg', 'avatar_fg', 'email_verified_at', 'created_at'],
+            ['id', 'name', 'first_name', 'email', 'role', 'is_academic', 'bio', 'bio_shared', 'contact', 'contact_shared', 'avatar_bg', 'avatar_fg', 'email_verified_at', 'created_at', 'interface_mode', 'usage_category', 'teacher_verified_at', 'teacher_verification_source'],
             array_keys($response->json('data')),
         );
     }

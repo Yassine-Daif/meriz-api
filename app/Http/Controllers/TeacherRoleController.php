@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * Passer en mode prof. Les deux conditions — adresse scolaire et email
- * vérifié — sont dans UserPolicy::becomeTeacher, et le Gate les applique
+ * Passer en mode prof. Les deux conditions, statut enseignant attesté et
+ * email vérifié, sont dans UserPolicy::becomeTeacher, et le Gate les applique
  * avant qu'on écrive quoi que ce soit.
  */
 class TeacherRoleController extends Controller

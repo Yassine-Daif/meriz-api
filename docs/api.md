@@ -1,8 +1,13 @@
 # Les points d'entrée de l'API
 
-Les 83 routes du serveur, par domaine. Relevé depuis `routes/api.php` : en cas
+Les routes du serveur, par domaine. Relevé depuis `routes/api.php` : en cas
 de doute, c'est ce fichier qui fait foi, et `php artisan route:list` qui le
 confirme.
+
+Les routes ajoutées pour les préférences Débutant/Complet, les paramètres
+d'exercice, les regroupements, la bibliothèque, les diffusions et les invitations
+de professeurs sont détaillées dans [enseignement.md](enseignement.md). Les
+connexions institutionnelles externes y sont distinguées des fonctions disponibles.
 
 Les canaux temps réel ne sont pas des routes HTTP, ils sont dans
 [websocket.md](websocket.md).

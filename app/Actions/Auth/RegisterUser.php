@@ -37,6 +37,7 @@ class RegisterUser
             'password' => $data['password'],
             'role' => UserRole::Student,
             'is_academic' => $this->academic->isAcademic($email),
+            'usage_category' => $data['usage_category'] ?? null,
         ])->save();
 
         $this->sendVerificationLink($user);

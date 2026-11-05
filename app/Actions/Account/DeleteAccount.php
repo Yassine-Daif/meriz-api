@@ -6,7 +6,9 @@ use App\Enums\UserRole;
 use App\Models\Classroom;
 use App\Models\Document;
 use App\Models\Group;
+use App\Models\TeachingResource;
 use App\Models\User;
+use App\Models\WorkspaceCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -32,6 +34,10 @@ class DeleteAccount
             // 1. Elle sort des classes et des groupes des autres.
             $user->classrooms()->detach();
             $user->groups()->detach();
+            WorkspaceCollection::where('user_id', $user->id)->get()->each->delete();
+            TeachingResource::where('user_id', $user->id)->get()->each->delete();
+            DB::table('education_referents')->where('user_id', $user->id)->delete();
+            DB::table('education_invitations')->where('inviter_id', $user->id)->orWhere('email', $user->email)->delete();
 
             // 2. Les groupes qu'elle a créés disparaissent, avec leurs
             //    membres et leurs documents partagés (cascade en base).
@@ -59,6 +65,11 @@ class DeleteAccount
                 'password' => Str::random(64),
                 'role' => UserRole::Student,
                 'is_academic' => false,
+                'interface_mode' => null,
+                'usage_category' => null,
+                'teacher_verified_at' => null,
+                'teacher_verification_source' => null,
+                'education_institution_id' => null,
                 'bio' => null,
                 'bio_shared' => false,
                 'contact' => null,

@@ -25,6 +25,15 @@ class Document extends Model
     /** @use HasFactory<DocumentFactory> */
     use HasFactory, HasUlids;
 
+    protected static function booted(): void
+    {
+        static::saving(function (Document $document) {
+            if ($document->isDirty('content')) {
+                $document->forceFill(['content_bytes' => strlen($document->content)]);
+            }
+        });
+    }
+
     /**
      * @return array<string, string>
      */
@@ -32,6 +41,7 @@ class Document extends Model
     {
         return [
             'last_observed_at' => 'datetime',
+            'content_bytes' => 'integer',
         ];
     }
 

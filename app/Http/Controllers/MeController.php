@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use App\Services\ActivateVerifiedTeacher;
 use Illuminate\Http\Request;
 
 class MeController extends Controller
@@ -17,6 +18,7 @@ class MeController extends Controller
     {
         $user = $request->user();
         $user->update($request->validated());
+        app(ActivateVerifiedTeacher::class)->handle($user);
 
         return new UserResource($user);
     }

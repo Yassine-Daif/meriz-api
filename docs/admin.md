@@ -49,12 +49,17 @@ métier.
 
 ## Ce qui est modifiable, et ce qui ne l'est pas
 
+Dans la liste des comptes, les noms longs sont raccourcis à l'affichage. Leur
+valeur complète reste disponible dans l'infobulle et dans le formulaire. Le
+rôle administrateur reste distinct du statut professeur vérifié décrit dans
+[enseignement.md](enseignement.md).
+
 La règle : on corrige ce qui identifie et ce qui organise, on ne touche pas aux
 contenus produits par les utilisateurs.
 
 | Ressource | Modifiable | Visible, non modifiable | Jamais affiché |
 |---|---|---|---|
-| Comptes | nom, prénom, statut scolaire, présentation, contact, partages | email, rôle, `is_admin`, email vérifié, anonymisation | mot de passe |
+| Comptes | nom, prénom, rôle élève/prof, statut scolaire, présentation, contact, partages | email, `is_admin`, email vérifié, anonymisation | mot de passe |
 | Classes | nom | code d'accès, prof, nombre de membres | — |
 | Devoirs | titre, consigne, type, échéance | classe, état, corrigé livré, suivi en direct | base, corrigé, image |
 | Cours | titre | classe, état, nombre de médias | blocs, médias |

@@ -4,6 +4,7 @@ use App\Http\Controllers\Account\AccountDeletionController;
 use App\Http\Controllers\Account\DataExportController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignmentImageController;
+use App\Http\Controllers\AssignmentInterfaceController;
 use App\Http\Controllers\AssignmentWorkController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
@@ -12,17 +13,23 @@ use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassroomMembershipController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EducationVerificationController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupDocumentController;
 use App\Http\Controllers\GroupMembershipController;
+use App\Http\Controllers\GroupTemplateController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonMediumController;
 use App\Http\Controllers\LiveTrackingController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\OverviewController;
+use App\Http\Controllers\PrepareAcademicYearController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\SubmissionGradeController;
 use App\Http\Controllers\TeacherRoleController;
+use App\Http\Controllers\TeachingResourceController;
+use App\Http\Controllers\TeachingResourceMediumController;
+use App\Http\Controllers\WorkspaceCollectionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok']))
@@ -56,10 +63,24 @@ Route::prefix('auth')->group(function () {
 // throttle:api est le plafond général. Chaque route sensible garde en plus sa
 // propre limite, bien plus basse.
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    Route::get('/collections', [WorkspaceCollectionController::class, 'index']);
+    Route::get('/teaching-resources', [TeachingResourceController::class, 'index']);
+    Route::get('/teaching-resources/{teachingResource}/media/{asset}', [TeachingResourceMediumController::class, 'show']);
+    Route::post('/teaching-resources', [TeachingResourceController::class, 'store'])->middleware('throttle:library-capture');
+    Route::post('/teaching-resources/{teachingResource}/refresh', [TeachingResourceController::class, 'refresh'])->middleware('throttle:library-capture');
+    Route::post('/teaching-resources/{teachingResource}/distribution', [TeachingResourceController::class, 'distribute'])->middleware('throttle:library-distribution');
+    Route::delete('/teaching-resources/{teachingResource}', [TeachingResourceController::class, 'destroy'])->middleware('throttle:library-capture');
+    Route::post('/collections', [WorkspaceCollectionController::class, 'store'])->middleware('throttle:collection-mutation');
+    Route::patch('/collections/{workspaceCollection}', [WorkspaceCollectionController::class, 'update'])->middleware('throttle:collection-mutation');
+    Route::delete('/collections/{workspaceCollection}', [WorkspaceCollectionController::class, 'destroy'])->middleware('throttle:collection-mutation');
+    Route::post('/collections/{workspaceCollection}/academic-year', [PrepareAcademicYearController::class, 'store'])->middleware('throttle:academic-year');
     Route::prefix('me')->group(function () {
         Route::get('/', [MeController::class, 'show']);
         Route::patch('/', [MeController::class, 'update'])->middleware('throttle:60,1');
         Route::post('/teacher-role', [TeacherRoleController::class, 'store'])->middleware('throttle:6,1');
+        Route::get('/education', [EducationVerificationController::class, 'show']);
+        Route::post('/education/invitations', [EducationVerificationController::class, 'invite'])->middleware('throttle:education-invitation');
+        Route::post('/education/accept-invitation', [EducationVerificationController::class, 'accept'])->middleware('throttle:education-accept');
 
         // Emporter ses données, puis fermer son compte. Les deux ne
         // regardent que le compte du jeton.
@@ -89,6 +110,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/classrooms/{classroom}/assignments', [AssignmentController::class, 'indexForClassroom']);
     Route::get('/assignments', [AssignmentController::class, 'index']);
     Route::get('/assignments/{assignment}', [AssignmentController::class, 'show']);
+    Route::get('/assignments/{assignment}/interface-settings', [AssignmentInterfaceController::class, 'show']);
     Route::get('/assignments/{assignment}/image', [AssignmentImageController::class, 'show']);
 
     Route::middleware('throttle:60,1')->group(function () {
@@ -171,7 +193,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/groups/{group}/code', [GroupController::class, 'regenerateCode']);
         Route::delete('/groups/{group}/members/{participant}', [GroupMembershipController::class, 'remove']);
         Route::delete('/groups/{group}/membership', [GroupMembershipController::class, 'leave']);
-        Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store']);
+        Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store'])
+            ->middleware('throttle:create-document');
     });
 
     // Commentaires d'un travail : généraux, ou posés sur le schéma.
@@ -185,6 +208,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     });
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'show']);
-    Route::apiResource('documents', DocumentController::class)->only(['store', 'update', 'destroy'])
+    Route::post('/documents', [DocumentController::class, 'store'])->middleware('throttle:create-document');
+    Route::post('/documents/{document}/group-distribution', [GroupTemplateController::class, 'store'])->middleware('throttle:group-template-distribution');
+    Route::apiResource('documents', DocumentController::class)->only(['update', 'destroy'])
         ->middleware('throttle:60,1');
 });

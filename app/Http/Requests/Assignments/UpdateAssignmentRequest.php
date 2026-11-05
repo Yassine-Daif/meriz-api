@@ -32,9 +32,14 @@ class UpdateAssignmentRequest extends FormRequest
      */
     public function rules(): array
     {
-        return array_map(
-            fn (array $rules) => ['sometimes', ...$rules],
-            StoreAssignmentRequest::fieldRules(),
-        );
+        $rules = StoreAssignmentRequest::fieldRules();
+        foreach ($rules as $field => &$fieldRules) {
+            // Les enfants restent obligatoires quand le parent est envoyé.
+            if (! str_contains($field, '.')) {
+                array_unshift($fieldRules, 'sometimes');
+            }
+        }
+
+        return $rules;
     }
 }

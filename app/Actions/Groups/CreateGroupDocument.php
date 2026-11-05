@@ -5,6 +5,7 @@ namespace App\Actions\Groups;
 use App\Models\Document;
 use App\Models\Group;
 use App\Models\User;
+use App\Services\DocumentStorageBudget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +17,8 @@ use Illuminate\Validation\ValidationException;
  */
 class CreateGroupDocument
 {
+    public function __construct(private readonly DocumentStorageBudget $budget) {}
+
     public const QUOTA_MESSAGE = 'Nombre maximal de documents atteint pour ce groupe.';
 
     /**
@@ -27,6 +30,7 @@ class CreateGroupDocument
     {
         return DB::transaction(function () use ($group, $author, $data) {
             Group::whereKey($group->id)->lockForUpdate()->first();
+            $this->budget->check($group, $data['content']);
 
             if ($group->documents()->count() >= config('groups.max_documents_per_group')) {
                 throw ValidationException::withMessages(['content' => self::QUOTA_MESSAGE]);

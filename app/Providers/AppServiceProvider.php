@@ -61,6 +61,31 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(120)->by('broadcast:'.($request->user()?->id ?: $request->ip())),
         ]);
 
+        // Créations personnelles, imports et groupes partagent le même budget
+        // par compte. Aucun effet sur l'autosauvegarde ou les camarades d'une IP.
+        RateLimiter::for('create-document', fn (Request $request) => [
+            Limit::perSecond(5, 10)->by('create-document-burst:'.$request->user()?->id),
+            Limit::perMinute(30)->by('create-document-minute:'.$request->user()?->id),
+            Limit::perHour(200)->by('create-document-hour:'.$request->user()?->id),
+        ]);
+
+        // Budgets nommés : les limites numériques de routes différentes
+        // partageraient autrement la même clé de compte dans Laravel.
+        foreach ([
+            'collection-mutation' => [30, 200],
+            'library-capture' => [10, 30],
+            'library-distribution' => [6, 30],
+            'academic-year' => [3, 3],
+            'group-template-distribution' => [6, 6],
+            'education-invitation' => [10, 10],
+            'education-accept' => [6, 30],
+        ] as $name => [$minute, $hour]) {
+            RateLimiter::for($name, fn (Request $request) => [
+                Limit::perMinute($minute)->by($name.':minute:'.$request->user()?->id),
+                Limit::perHour($hour)->by($name.':hour:'.$request->user()?->id),
+            ]);
+        }
+
         RateLimiter::for('login', function (Request $request) {
             $email = Str::lower(trim((string) $request->input('email')));
 

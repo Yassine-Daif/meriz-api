@@ -3,6 +3,7 @@
 namespace App\Actions\Auth;
 
 use App\Models\User;
+use App\Services\ActivateVerifiedTeacher;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Contracts\Auth\PasswordBroker;
 use Illuminate\Support\Facades\Password;
@@ -49,6 +50,7 @@ class ResetPassword
 
             // Toutes les sessions en cours tombent, sur tous les appareils.
             $user->tokens()->delete();
+            app(ActivateVerifiedTeacher::class)->handle($user);
 
             event(new PasswordReset($user));
         });

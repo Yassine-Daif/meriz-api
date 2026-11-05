@@ -4,6 +4,7 @@ namespace App\Actions\Teacher;
 
 use App\Enums\UserRole;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Donne le rôle prof. Idempotent.
@@ -17,6 +18,7 @@ class GrantTeacherRole
 {
     public function handle(User $user): User
     {
+        Gate::forUser($user)->authorize('becomeTeacher', User::class);
         if (! $user->isTeacher()) {
             $user->forceFill(['role' => UserRole::Teacher])->save();
         }

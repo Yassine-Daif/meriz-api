@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Storage;
  * actions dédiées. Le corrigé, la base et le chemin de l'image sont cachés à
  * la sérialisation : seule AssignmentResource décide de ce qui sort.
  */
-#[Fillable(['title', 'instructions', 'type', 'due_at', 'base_content', 'solution_content'])]
+#[Fillable(['title', 'instructions', 'type', 'due_at', 'base_content', 'solution_content', 'interface_settings'])]
 #[Hidden(['solution_content', 'base_content', 'image_path'])]
 class Assignment extends Model
 {
@@ -61,6 +61,7 @@ class Assignment extends Model
             'live_tracking' => 'boolean',
             'live_tracking_enabled_at' => 'datetime',
             'image_size' => 'integer',
+            'interface_settings' => 'array',
         ];
     }
 

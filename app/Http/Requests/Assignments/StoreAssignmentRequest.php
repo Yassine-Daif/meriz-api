@@ -43,6 +43,11 @@ class StoreAssignmentRequest extends FormRequest
         if (isset($validated['due_at'])) {
             $validated['due_at'] = Carbon::parse($validated['due_at'])->utc();
         }
+        if (isset($validated['interface_settings'])) {
+            foreach (['export_image', 'export_model'] as $field) {
+                $validated['interface_settings'][$field] = (bool) $validated['interface_settings'][$field];
+            }
+        }
 
         return $validated;
     }
@@ -73,6 +78,12 @@ class StoreAssignmentRequest extends FormRequest
             'due_at' => ['nullable', 'date'],
             'base_content' => $content,
             'solution_content' => $content,
+            // Une liste explicite et complète évite les réglages partiels ambigus.
+            'interface_settings' => ['nullable', 'array:views,export_image,export_model'],
+            'interface_settings.views' => ['required_with:interface_settings', 'array', 'list', 'min:1', 'max:6'],
+            'interface_settings.views.*' => ['required', 'string', 'distinct', Rule::in(['dictionnaire', 'mcd', 'mld', 'mpd', 'sql', 'code'])],
+            'interface_settings.export_image' => ['required_with:interface_settings', 'boolean'],
+            'interface_settings.export_model' => ['required_with:interface_settings', 'boolean'],
         ];
     }
 }

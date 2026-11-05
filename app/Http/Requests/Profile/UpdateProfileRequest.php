@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests\Profile;
 
+use App\Enums\InterfaceMode;
+use App\Enums\UsageCategory;
 use App\Rules\HexColor;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Seuls les champs du profil se modifient ici. Email, mot de passe, rôle et
@@ -43,6 +46,8 @@ class UpdateProfileRequest extends FormRequest
             'contact_shared' => ['sometimes', 'boolean'],
             'avatar_bg' => ['sometimes', 'nullable', new HexColor],
             'avatar_fg' => ['sometimes', 'nullable', new HexColor],
+            'interface_mode' => ['sometimes', 'required', Rule::enum(InterfaceMode::class)],
+            'usage_category' => ['sometimes', 'required', Rule::enum(UsageCategory::class)],
         ];
     }
 }

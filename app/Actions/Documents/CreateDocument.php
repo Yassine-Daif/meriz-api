@@ -4,6 +4,7 @@ namespace App\Actions\Documents;
 
 use App\Models\Document;
 use App\Models\User;
+use App\Services\DocumentStorageBudget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -12,6 +13,8 @@ use Illuminate\Validation\ValidationException;
  */
 class CreateDocument
 {
+    public function __construct(private readonly DocumentStorageBudget $budget) {}
+
     public const QUOTA_MESSAGE = 'Nombre maximal de documents atteint.';
 
     /**
@@ -24,6 +27,7 @@ class CreateDocument
         return DB::transaction(function () use ($owner, $data, $assignmentId) {
             // Verrou sur le compte : deux créations simultanées ne dépassent pas le quota.
             User::whereKey($owner->id)->lockForUpdate()->first();
+            $this->budget->check($owner, $data['content']);
 
             // Seuls ses documents personnels comptent : ceux d'un groupe
             // relèvent du quota du groupe.

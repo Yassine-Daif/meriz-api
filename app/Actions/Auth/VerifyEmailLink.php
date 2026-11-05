@@ -4,6 +4,7 @@ namespace App\Actions\Auth;
 
 use App\Enums\EmailVerificationResult;
 use App\Models\User;
+use App\Services\ActivateVerifiedTeacher;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
@@ -45,6 +46,7 @@ class VerifyEmailLink
         }
 
         $user->markEmailAsVerified();
+        app(ActivateVerifiedTeacher::class)->handle($user);
 
         event(new Verified($user));
 

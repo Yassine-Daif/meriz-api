@@ -70,7 +70,7 @@ Tout le reste de l'API fonctionne sans lui. Détails dans
 
 ## Les tests
 
-500 tests couvrent l'API, dont une bonne part vérifie le cloisonnement des
+Les tests couvrent l'API, dont une bonne part vérifie le cloisonnement des
 données : qu'un élève ne voit pas le travail d'un autre, qu'un prof ne voit pas
 une classe qui n'est pas la sienne.
 
@@ -85,7 +85,7 @@ La suite tourne sur une base SQLite en mémoire, il n'y a rien à préparer.
 
 | Dossier | Ce qu'on y trouve |
 |---|---|
-| `routes/api.php` | Les 83 points d'entrée de l'API |
+| `routes/api.php` | Les points d'entrée de l'API |
 | `app/Http/Controllers` | Contrôleurs fins : autoriser, déléguer, répondre |
 | `app/Http/Requests` | La validation des entrées, une Form Request par point d'entrée |
 | `app/Http/Resources` | Ce qui sort en JSON, en liste blanche de champs |
@@ -98,6 +98,12 @@ La suite tourne sur une base SQLite en mémoire, il n'y a rien à préparer.
 | `docs/` | Le reste de la documentation |
 
 ## Documentation
+
+Les préférences Débutant/Complet, les restrictions d'exercice, les regroupements
+par année et la bibliothèque pédagogique sont décrits dans
+[docs/enseignement.md](docs/enseignement.md). Ce document précise aussi les
+conditions de vérification des professeurs et les raccordements institutionnels
+qui restent à établir.
 
 | Document | Sujet |
 |---|---|

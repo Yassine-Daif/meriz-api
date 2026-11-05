@@ -17,6 +17,10 @@ return [
 
     'max_per_user' => (int) env('DOCUMENTS_MAX_PER_USER', 1000),
 
+    'max_user_storage_bytes' => (int) env('DOCUMENTS_MAX_USER_STORAGE_BYTES', 100 * 1024 * 1024),
+
+    'max_group_storage_bytes' => (int) env('DOCUMENTS_MAX_GROUP_STORAGE_BYTES', 100 * 1024 * 1024),
+
     'per_page' => 50,
 
     'max_per_page' => 100,

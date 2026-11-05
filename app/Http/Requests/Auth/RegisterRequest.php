@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Enums\UsageCategory;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
@@ -32,6 +34,8 @@ class RegisterRequest extends FormRequest
             // bcrypt ignore tout au-delà de 72 octets.
             'password' => ['required', 'string', Password::defaults(), 'max:72'],
             'device_name' => ['nullable', 'string', 'max:100'],
+            // Facultatif pour les versions de bureau antérieures.
+            'usage_category' => ['sometimes', 'required', Rule::enum(UsageCategory::class)],
         ];
     }
 }

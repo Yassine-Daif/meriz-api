@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\InterfaceMode;
+use App\Enums\UsageCategory;
 use App\Enums\UserRole;
 use App\Notifications\ResetPasswordLink;
 use App\Notifications\VerifyEmailAddress;
@@ -23,7 +25,7 @@ use Laravel\Sanctum\HasApiTokens;
  * is_academic et is_admin ne s'écrivent que par forceFill, dans les actions
  * et les commandes dédiées.
  */
-#[Fillable(['name', 'first_name', 'bio', 'bio_shared', 'contact', 'contact_shared', 'avatar_bg', 'avatar_fg'])]
+#[Fillable(['name', 'first_name', 'bio', 'bio_shared', 'contact', 'contact_shared', 'avatar_bg', 'avatar_fg', 'interface_mode', 'usage_category'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
@@ -61,6 +63,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'is_admin' => 'boolean',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'interface_mode' => InterfaceMode::class,
+            'usage_category' => UsageCategory::class,
+            'teacher_verified_at' => 'datetime',
             'is_academic' => 'boolean',
             'bio_shared' => 'boolean',
             'contact_shared' => 'boolean',

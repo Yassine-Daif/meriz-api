@@ -27,10 +27,10 @@ Par jeton, un Bearer token, et non par cookie. La connexion et l'inscription ren
 
 ## Décisions actées
 
-- Connexion par email. Un statut scolaire ou universitaire est vérifié par le domaine de l'email.
+- Connexion par email. Le domaine reconnaît une adresse scolaire, mais ne prouve pas un statut enseignant. L'activation professeur demande un email confirmé et une attestation de l'établissement. Voir `docs/enseignement.md` pour les invitations de référents et les raccordements institutionnels en attente.
 - Deux rôles, élève et prof.
 - Code de classe pour rejoindre vite, mais l'élève est connecté à son compte, jamais en anonyme, pour garder le suivi.
-- Classes simples, pas de couche établissement ou école pour l'instant.
+- Classes simples. Les établissements et référents servent uniquement à l'attestation d'identité, sans couche de gestion scolaire générale.
 - Commentaires contextuels attachés au travail, pas de chat.
 
 ## Modèle de données, direction générale
