@@ -42,6 +42,8 @@ class VerifyEmailLink
         // 3. Usage unique : un lien déjà suivi ne réécrit rien et ne
         //    réémet pas l'événement.
         if ($user->hasVerifiedEmail()) {
+            app(ActivateVerifiedTeacher::class)->handle($user);
+
             return EmailVerificationResult::Already;
         }
 

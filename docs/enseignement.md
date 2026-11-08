@@ -150,11 +150,33 @@ anciennes routes restent compatibles avec les clients précédents.
 
 ## Vérification des professeurs
 
-La propriété d'une boîte email ne prouve pas un statut enseignant. Le domaine
-scolaire sert à reconnaître une adresse et à orienter la personne. Il n'attribue
-plus à lui seul le rôle professeur. Les rôles déjà attribués restent valides.
+Depuis le 8 novembre 2026, l'accès est volontairement simplifié : la personne
+choisit Professeur à l'inscription, utilise une adresse scolaire ou universitaire
+reconnue et reçoit immédiatement un lien d'activation. La confirmation du lien
+active automatiquement le rôle professeur. Aucun code d'invitation ni validation
+manuelle n'est demandé dans l'interface.
 
-Le parcours opérationnel préparé est l'invitation par un référent dont le mandat
+Une adresse personnelle reste acceptée pour les autres catégories. Le choix
+Professeur impose une adresse scolaire à l'inscription. Le domaine est évalué
+par le serveur, à partir de `config/academic.php` et des compléments
+`ACADEMIC_EXTRA_DOMAINS`. Les académies françaises (`ac-*.fr`) sont couvertes,
+ainsi que les domaines universitaires et internationaux configurés.
+
+Un élève avec une adresse scolaire reste élève après confirmation. La promotion
+automatique requiert le choix Professeur. Un compte déjà inscrit, déclaré
+Professeur et dont l'adresse scolaire est confirmée, s'active à sa prochaine
+connexion ou actualisation du profil. Les rôles déjà attribués restent valides.
+Les attestations existantes restent acceptées pour compatibilité ; une simple
+confirmation d'adresse scolaire ne crée pas de fausse attestation dans les
+champs `teacher_verified_at` et `teacher_verification_source`.
+
+Ce parcours vérifie la possession de la boîte email et non le statut professionnel
+de son titulaire. Cet accès ouvert est une décision explicite. Les permissions
+sur les classes, travaux et documents des autres utilisateurs restent inchangées.
+
+### Ancien parcours institutionnel conservé pour compatibilité
+
+Le mécanisme précédent repose sur l'invitation par un référent dont le mandat
 institutionnel a été vérifié par l'opérateur de Meriz. L'opérateur doit d'abord
 créer une entrée `education_institutions` à partir des informations de
 l'établissement, puis autoriser le référent avec :
@@ -169,8 +191,8 @@ faite auprès de l'établissement. Elle ne doit pas être utilisée sur la seule
 déclaration d'une personne ou son domaine email. Aucun référent ni établissement
 réel n'est créé par les migrations.
 
-Un référent autorisé et dont l'email est confirmé peut adresser une invitation
-nominative depuis son profil. Le code expire après 48 heures, est haché en base
+L'API permet toujours à un référent autorisé et dont l'email est confirmé
+d'adresser une invitation nominative. Le code expire après 48 heures, est haché en base
 et ne figure dans aucune URL. Le titulaire le saisit dans son profil. L'adresse
 du compte doit correspondre au destinataire. L'activation professeur est
 automatique dès que le code et l'email sont vérifiés, dans n'importe quel ordre.
@@ -184,11 +206,9 @@ testée et la vérification des attributs de statut transmis. EduConnect concern
 les élèves et responsables légaux, pas une attestation du statut enseignant.
 Le rattachement institutionnel facultatif des élèves reste donc en attente.
 
-Le lot 1.7.0 est publié sans ces raccordements, avec ce report explicitement
-accepté. Les professeurs existants gardent leur rôle. Pour un nouveau professeur,
-une invitation de référent vérifié permet le parcours automatique décrit plus
-haut ; l'administration peut aussi attribuer le rôle après vérification.
-La sélection « Professeur » à l'inscription ne constitue jamais cette preuve.
+Le lot 1.7.0 a été publié sans ces raccordements, avec ce report explicitement
+accepté. Ils restent reportés ; ils ne sont pas nécessaires au parcours simplifié
+d'activation par email. L'administration conserve sa gestion habituelle des rôles.
 
 Références : [RENATER](https://services.renater.fr/federation/),
 [eduGAIN](https://edugain.org/participants/how-to-use-edugain/),

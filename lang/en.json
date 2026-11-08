@@ -86,5 +86,10 @@
     "Mo": "MB",
     "Ko": "KB",
     "Le classement a changé. Actualisez la liste avant de déplacer cet espace.": "The collection membership has changed. Refresh the list before moving this workspace.",
-    "Ce regroupement contient déjà 200 espaces.": "This collection already contains 200 workspaces."
+    "Ce regroupement contient déjà 200 espaces.": "This collection already contains 200 workspaces.",
+    "Pour vous inscrire comme professeur, utilisez votre adresse email scolaire ou universitaire.": "To sign up as a teacher, use your school or university email address.",
+    "Utilisez une adresse scolaire ou universitaire confirmée pour activer le mode prof.": "Use a confirmed school or university email address to activate teacher mode.",
+    "Activez votre espace professeur Meriz": "Activate your Meriz teacher workspace",
+    "Confirmez votre adresse d’établissement pour activer automatiquement votre espace professeur.": "Confirm your school or university email address to activate your teacher workspace automatically.",
+    "Activer mon espace professeur": "Activate my teacher workspace"
 }

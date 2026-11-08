@@ -11,6 +11,8 @@ class MeController extends Controller
 {
     public function show(Request $request): UserResource
     {
+        app(ActivateVerifiedTeacher::class)->handle($request->user());
+
         return new UserResource($request->user());
     }
 

@@ -14,16 +14,17 @@ class TeacherRoleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_academic_email_alone_cannot_grant_teacher_status(): void
+    public function test_confirmed_academic_email_can_grant_teacher_role_without_attestation(): void
     {
         $user = User::factory()->academic()->create();
         Sanctum::actingAs($user);
 
         $this->postJson('/api/me/teacher-role')
-            ->assertForbidden()
-            ->assertJsonPath('message', UserPolicy::NOT_ACADEMIC_MESSAGE);
+            ->assertOk()
+            ->assertJsonPath('data.role', 'teacher');
 
-        $this->assertSame(UserRole::Student, $user->fresh()->role);
+        $this->assertSame(UserRole::Teacher, $user->fresh()->role);
+        $this->assertNull($user->fresh()->teacher_verified_at);
     }
 
     public function test_non_academic_account_cannot_become_teacher(): void
@@ -92,6 +93,7 @@ class TeacherRoleTest extends TestCase
             'first_name' => 'Claire',
             'email' => 'claire@ac-lyon.fr',
             'password' => 'motdepasse-solide',
+            'usage_category' => 'teacher',
         ])->json('data.token');
 
         // Juste inscrite, l'adresse n'est pas encore confirmée.
@@ -112,7 +114,7 @@ class TeacherRoleTest extends TestCase
         $this->app['auth']->forgetGuards();
 
         $this->withToken($token)->postJson('/api/me/teacher-role')
-            ->assertForbidden()
-            ->assertJsonPath('message', UserPolicy::NOT_ACADEMIC_MESSAGE);
+            ->assertOk()
+            ->assertJsonPath('data.role', 'teacher');
     }
 }

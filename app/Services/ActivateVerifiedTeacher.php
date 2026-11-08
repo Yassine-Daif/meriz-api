@@ -12,7 +12,9 @@ class ActivateVerifiedTeacher
 
     public function handle(User $user): void
     {
-        if ($user->usage_category === UsageCategory::Teacher && $user->teacher_verified_at !== null && $user->hasVerifiedEmail()) {
+        if ($user->usage_category === UsageCategory::Teacher
+            && ($user->is_academic || $user->teacher_verified_at !== null)
+            && $user->hasVerifiedEmail()) {
             $this->grant->handle($user);
         }
     }

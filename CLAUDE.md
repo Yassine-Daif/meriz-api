@@ -27,7 +27,7 @@ Par jeton, un Bearer token, et non par cookie. La connexion et l'inscription ren
 
 ## Décisions actées
 
-- Connexion par email. Le domaine reconnaît une adresse scolaire, mais ne prouve pas un statut enseignant. L'activation professeur demande un email confirmé et une attestation de l'établissement. Voir `docs/enseignement.md` pour les invitations de référents et les raccordements institutionnels en attente.
+- Connexion par email. Depuis le 8 novembre 2026, le parcours professeur est simplifié : catégorie Professeur et adresse scolaire ou universitaire confirmée suffisent à l'activation automatique. Aucune invitation n'est demandée dans l'interface. Le domaine ne constitue pas une preuve de statut professionnel ; ce choix d'accès ouvert est explicite. Voir `docs/enseignement.md`.
 - Deux rôles, élève et prof.
 - Code de classe pour rejoindre vite, mais l'élève est connecté à son compte, jamais en anonyme, pour garder le suivi.
 - Classes simples. Les établissements et référents servent uniquement à l'attestation d'identité, sans couche de gestion scolaire générale.

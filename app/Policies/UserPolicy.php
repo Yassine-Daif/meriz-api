@@ -7,14 +7,13 @@ use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
-    public const NOT_ACADEMIC_MESSAGE = 'Le statut enseignant doit être confirmé par votre établissement avant d’activer le mode prof.';
+    public const NOT_ACADEMIC_MESSAGE = 'Utilisez une adresse scolaire ou universitaire confirmée pour activer le mode prof.';
 
     public const NOT_VERIFIED_MESSAGE = 'Confirme ton adresse email avant d\'activer le mode prof.';
 
     /**
-     * Une boîte email confirmée et une attestation du statut enseignant
-     * sont deux preuves différentes. Le domaine scolaire ne distingue
-     * pas un étudiant d'un professeur.
+     * Parcours simplifié : une adresse scolaire confirmée suffit.
+     * Les anciennes attestations restent acceptées pour les comptes concernés.
      */
     public function becomeTeacher(User $user): Response
     {
@@ -27,7 +26,7 @@ class UserPolicy
             return Response::deny(self::NOT_VERIFIED_MESSAGE);
         }
 
-        if ($user->teacher_verified_at === null) {
+        if (! $user->is_academic && $user->teacher_verified_at === null) {
             return Response::deny(self::NOT_ACADEMIC_MESSAGE);
         }
 

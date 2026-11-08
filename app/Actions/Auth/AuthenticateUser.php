@@ -3,6 +3,7 @@
 namespace App\Actions\Auth;
 
 use App\Models\User;
+use App\Services\ActivateVerifiedTeacher;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -39,6 +40,8 @@ class AuthenticateUser
                 'email' => self::FAILED_MESSAGE,
             ]);
         }
+
+        app(ActivateVerifiedTeacher::class)->handle($user);
 
         return [
             'user' => $user,

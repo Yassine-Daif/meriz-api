@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Auth;
 
 use App\Enums\UsageCategory;
+use App\Services\AcademicEmailChecker;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -30,7 +32,12 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'first_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:users,email'],
+            'email' => ['bail', 'required', 'string', 'email:rfc', 'max:255', 'unique:users,email', function (string $attribute, mixed $value, Closure $fail) {
+                if ($this->input('usage_category') === UsageCategory::Teacher->value
+                    && ! app(AcademicEmailChecker::class)->isAcademic($value)) {
+                    $fail(__('Pour vous inscrire comme professeur, utilisez votre adresse email scolaire ou universitaire.'));
+                }
+            }],
             // bcrypt ignore tout au-delà de 72 octets.
             'password' => ['required', 'string', Password::defaults(), 'max:72'],
             'device_name' => ['nullable', 'string', 'max:100'],
